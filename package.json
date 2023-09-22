@@ -1,7 +1,6 @@
 {
   "name": "superba",
   "version": "0.1.0",
-  "private": true,
   "bin": {
     "superba": "next dev"
   },
