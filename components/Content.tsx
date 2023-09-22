@@ -1,9 +1,17 @@
 'use client'
 
-import { Code, KeyboardReturn } from '@mui/icons-material'
+import { cleanHtml } from '@/utils/cleanHtml'
 import {
-  Button,
+  Apps,
+  Code,
+  CodeRounded,
+  KeyboardReturn,
+  Redo,
+  Undo,
+} from '@mui/icons-material'
+import {
   CircularProgress,
+  Container,
   Drawer,
   IconButton,
   InputAdornment,
@@ -14,44 +22,205 @@ import {
   Typography,
 } from '@mui/material'
 import { useChat } from 'ai/react'
-import { FC, useEffect, useRef, useState } from 'react'
+import axios from 'axios'
+import { FC, FormEvent, useEffect, useRef, useState } from 'react'
 import SyntaxHighlighter from 'react-syntax-highlighter'
 import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs'
+import { Browse } from './Browse'
+import { Message } from 'ai'
 
 export const Content: FC = () => {
-  const { handleInputChange, handleSubmit, input, isLoading, messages, data } =
-    useChat()
+  const {
+    handleSubmit,
+    setInput,
+    isLoading: chatIsLoading,
+    messages,
+    setMessages,
+    data,
+  } = useChat()
 
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
+  const [isInitialized, setIsInitialized] = useState(false)
+
   const [code, setCode] = useState('')
+  const [component, setComponent] = useState('')
+  const [html, setHtml] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [numberOfSteps, setNumberOfSteps] = useState(0)
+  const [step, setStep] = useState(0)
+  const [text, setText] = useState('')
   const [showCode, setShowCode] = useState(false)
+  const [showComponents, setShowComponents] = useState(false)
   const [title, setTitle] = useState('')
 
   const [provider, setProvider] = useState('openai')
-  const [version, setVersion] = useState('4')
+  const [model, setModel] = useState('')
+
+  const handleLoadComponent = async (component: string) => {
+    setShowComponents(false)
+
+    setIsLoading(true)
+
+    const res = await axios({
+      method: 'POST',
+      url: '/api/component/loadComponent',
+      data: {
+        component,
+      },
+    })
+    const data = res.data as {
+      steps: {
+        number: number
+        html: string
+        messages: Message[]
+      }[]
+    }
+
+    const latestStep = data.steps.sort((a, b) => b.number - a.number)[0]
+    setComponent(component)
+    setHtml(latestStep.html)
+    setMessages(data.steps.flatMap((step) => step.messages))
+    setStep(data.steps.length)
+    setNumberOfSteps(data.steps.length)
+
+    setIsLoading(false)
+  }
+
+  const handleUndo = () => {
+    if (step === 1) {
+      return
+    }
+
+    const newStep = step - 1
+
+    handleStep(newStep)
+  }
+
+  const handleRedo = () => {
+    if (step === numberOfSteps) {
+      return
+    }
+
+    const newStep = step + 1
+
+    handleStep(newStep)
+  }
+
+  const handleStep = async (newStep: number) => {
+    setIsLoading(true)
+
+    const res = await axios({
+      method: 'POST',
+      url: '/api/component/getStep',
+      data: {
+        component,
+        step: newStep,
+      },
+    })
+
+    setHtml(res.data.html)
+    setMessages(res.data.messages)
+
+    setStep(newStep)
+    setIsLoading(false)
+  }
+
+  const handleSubmitForm = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+
+    const newMessages = messages.slice()
+    newMessages.push({
+      id: `${Math.random()}`,
+      role: 'user',
+      content: text,
+    })
+
+    handleSubmit(e, {
+      options: {
+        body: {
+          component,
+          messages: newMessages,
+          step,
+        },
+      },
+    })
+
+    setText('')
+  }
 
   useEffect(() => {
-    if (data && data[0]) {
-      setTitle(data[0].title)
+    setInput(text)
+  }, [setInput, text])
+
+  const init = async () => {
+    const res = await axios({
+      method: 'POST',
+      url: '/api/settings/getValue',
+      data: {
+        key: 'model',
+      },
+    })
+
+    setModel(res.data.value)
+
+    setIsInitialized(true)
+  }
+
+  const setValue = async (key: string, value: string) => {
+    await axios({
+      method: 'POST',
+      url: '/api/settings/setValue',
+      data: {
+        key,
+        value,
+      },
+    })
+  }
+
+  useEffect(() => {
+    if (data && data.length > 0) {
+      const latestData = data[data.length - 1]
+      setTitle(latestData.title)
+      setNumberOfSteps(latestData.step)
+      setStep(latestData.step)
+      setComponent(latestData.component)
     }
   }, [data])
 
   useEffect(() => {
+    if (!provider) {
+      return
+    }
+    setValue('provider', provider)
+  }, [provider])
+
+  useEffect(() => {
+    if (!model) {
+      return
+    }
+    setValue('model', model)
+  }, [model])
+
+  useEffect(() => {
+    if (!chatIsLoading) {
+      return
+    }
+
     const message = messages.filter((m) => m.role === 'assistant').slice(-1)[0]
-    const html =
-      message?.content
-        ?.replace(/^```[a-zA-Z0-9]*\n/i, '')
-        .replace(/\n```$/, '')
-        .split(/\n/g)
-        .join('\n    ') || ''
+    const html = cleanHtml(message?.content)
+
+    setHtml(html)
+  }, [chatIsLoading, messages, title])
+
+  useEffect(() => {
     setCode(
       `export const ${title || 'Component'}: FC = () => {\n  return (\n    ` +
         html +
         '\n  )\n}'
     )
 
-    if (!isLoading) {
+    if (!chatIsLoading) {
       if (iframeRef.current) {
         iframeRef.current.src =
           'data:text/html;charset=utf-8,' +
@@ -69,7 +238,19 @@ export const Content: FC = () => {
         </html>`)
       }
     }
-  }, [isLoading, messages, title])
+  }, [html, chatIsLoading, title])
+
+  useEffect(() => {
+    init()
+  }, [])
+
+  if (!isInitialized) {
+    return (
+      <Stack alignItems="center" height="100vh" justifyContent="center">
+        <CircularProgress />
+      </Stack>
+    )
+  }
 
   return (
     <>
@@ -102,44 +283,91 @@ export const Content: FC = () => {
               </Typography>
             </Stack>
           )}
-          <form onSubmit={isLoading ? (e) => e.preventDefault() : handleSubmit}>
-            <Stack alignItems="center" gap={1}>
-              <TextField
-                autoFocus
-                onChange={handleInputChange}
-                placeholder={
-                  messages && messages.length > 0
-                    ? 'Tell me more...'
-                    : 'What do you want to build?'
+          <Stack alignItems="center" direction="row" gap={2}>
+            {messages && messages.length > 0 && (
+              <div>
+                <IconButton
+                  disabled={
+                    numberOfSteps === 0 ||
+                    step === 1 ||
+                    isLoading ||
+                    chatIsLoading
+                  }
+                  onClick={() => handleUndo()}
+                >
+                  <Undo />
+                </IconButton>
+                <IconButton
+                  disabled={
+                    numberOfSteps === 0 ||
+                    numberOfSteps === step ||
+                    isLoading ||
+                    chatIsLoading
+                  }
+                  onClick={() => handleRedo()}
+                >
+                  <Redo />
+                </IconButton>
+              </div>
+            )}
+
+            <Stack flexGrow={1}>
+              <form
+                onSubmit={
+                  isLoading || chatIsLoading
+                    ? (e) => e.preventDefault()
+                    : (e) => handleSubmitForm(e)
                 }
-                value={input}
-                variant="outlined"
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      {isLoading ? (
-                        <CircularProgress
-                          size={24}
-                          sx={{ color: 'white', marginRight: '10px' }}
-                        />
-                      ) : (
-                        <KeyboardReturn
-                          sx={{ color: 'white', marginRight: '10px' }}
-                        />
-                      )}
-                    </InputAdornment>
-                  ),
-                  style: {
-                    background: '#333',
-                    color: '#FFF',
-                    borderRadius: '50px',
-                    padding: '0 20px',
-                    width: '30vw',
-                  },
-                }}
-              />
+              >
+                <Stack alignItems="center" gap={1}>
+                  <TextField
+                    autoFocus
+                    onChange={(e) => setText(e.target.value)}
+                    placeholder={
+                      messages && messages.length > 0
+                        ? 'Tell me more...'
+                        : 'What do you want to build?'
+                    }
+                    value={text}
+                    variant="outlined"
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          {isLoading || chatIsLoading ? (
+                            <CircularProgress
+                              size={24}
+                              sx={{ color: 'white', marginRight: '10px' }}
+                            />
+                          ) : (
+                            <KeyboardReturn
+                              sx={{ color: 'white', marginRight: '10px' }}
+                            />
+                          )}
+                        </InputAdornment>
+                      ),
+                      style: {
+                        background: '#333',
+                        color: '#FFF',
+                        borderRadius: '50px',
+                        padding: '0 20px',
+                        width: '30vw',
+                      },
+                    }}
+                  />
+                </Stack>
+              </form>
             </Stack>
-          </form>
+            {messages && messages.length > 0 && (
+              <div>
+                <IconButton onClick={() => setShowCode(true)}>
+                  <CodeRounded />
+                </IconButton>
+                <IconButton onClick={() => setShowComponents(true)}>
+                  <Apps />
+                </IconButton>
+              </div>
+            )}
+          </Stack>
           <Stack alignItems="center" direction="row" gap={1}>
             <Typography>Provider</Typography>
             <Select
@@ -149,13 +377,14 @@ export const Content: FC = () => {
             >
               <MenuItem value="openai">OpenAI</MenuItem>
             </Select>
-            <Typography>Version</Typography>
+            <Typography>Model</Typography>
             <Select
-              onChange={(e) => setVersion(e.target.value)}
-              value={version}
+              onChange={(e) => setModel(e.target.value)}
+              value={model}
               variant="standard"
             >
-              <MenuItem value="4">4</MenuItem>
+              <MenuItem value="gpt-3.5-turbo">3.5</MenuItem>
+              <MenuItem value="gpt-4">4</MenuItem>
             </Select>
           </Stack>
         </Stack>
@@ -171,11 +400,27 @@ export const Content: FC = () => {
           </SyntaxHighlighter>
         </Stack>
       </Drawer>
-      <Stack position="fixed" right={10} top={10} zIndex={100000000}>
-        <IconButton onClick={() => setShowCode(!showCode)}>
-          <Code />
-        </IconButton>
-      </Stack>
+      <Drawer
+        anchor="bottom"
+        open={showComponents}
+        onClose={() => setShowComponents(false)}
+      >
+        <Stack p={2}>
+          <Container maxWidth="xl">
+            <Typography component="h3" mb={4} variant="h4">
+              My Components
+            </Typography>
+            <Browse onSelect={(component) => handleLoadComponent(component)} />
+          </Container>
+        </Stack>
+      </Drawer>
+      {showCode && (
+        <Stack position="fixed" right={10} top={10} zIndex={100000000}>
+          <IconButton onClick={() => setShowCode(!showCode)}>
+            <Code />
+          </IconButton>
+        </Stack>
+      )}
     </>
   )
 }

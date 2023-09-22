@@ -1,6 +1,6 @@
 {
   "name": "superba",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "scripts": {
     "dev": "next dev -p 62223",
     "build": "next build",
@@ -17,6 +17,8 @@
     "@types/react": "18.2.21",
     "@types/react-dom": "18.2.7",
     "ai": "^2.2.12",
+    "axios": "^1.5.0",
+    "change-case": "^4.1.2",
     "eslint": "8.49.0",
     "eslint-config-next": "13.4.19",
     "express": "^4.18.2",
