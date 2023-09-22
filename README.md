@@ -4,13 +4,16 @@
 
 ## Quickstart
 
-To run `superba` instantly, run this:
+To run `superba`:
 
 ```sh
-npx superba
+git clone https://github.com/ctate/superba.git
+cd superba
+npm install
+npm run dev
 ```
 
-You can now visit `superba` via http://localhost:62223
+Then go to: http://localhost:62223
 
 ## Contribute
 

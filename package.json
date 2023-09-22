@@ -1,9 +1,6 @@
 {
   "name": "superba",
   "version": "0.1.13",
-  "bin": {
-    "superba": "./bin/superba"
-  },
   "scripts": {
     "dev": "next dev -p 62223",
     "build": "next build",
