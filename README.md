@@ -4,12 +4,25 @@
 
 ## Quickstart
 
-To run `superba`:
+### Install
 
 ```sh
 git clone https://github.com/ctate/superba.git
 cd superba
 npm install
+```
+
+### Configure
+
+Add `.env.local` file with your OpenAI [API Key](https://platform.openai.com/account/api-keys):
+
+```
+OPENAI_API_KEY=""
+```
+
+### Run
+
+```
 npm run dev
 ```
 
