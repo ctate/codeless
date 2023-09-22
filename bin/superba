@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
-const { execSync } = require('child_process')
+const child_process = require('child_process')
+const fs = require('fs')
+const path = require('path')
 
-execSync('npm run dev')
+execSync(path.dirname())
