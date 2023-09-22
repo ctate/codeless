@@ -1,6 +1,6 @@
 {
   "name": "superba",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "bin": {
     "superba": "./bin/superba"
   },
