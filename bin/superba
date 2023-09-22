@@ -2,4 +2,7 @@
 
 const { execSync } = require('child_process')
 
+console.log(`superba - use AI to generate UI components`)
+console.log(`Open your browser to http://localhost:62223`)
+
 execSync('npm run dev', { cwd: __dirname })
