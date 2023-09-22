@@ -7,7 +7,7 @@ console.log(__dirname);
 console.log(`superba - use AI to generate UI components`)
 
 console.log(`Installing dependencies...`)
-execSync('pnpm install', { cwd: __dirname })
+execSync('npm install', { cwd: __dirname })
 
 console.log(`Open your browser to http://localhost:62223`)
-execSync('pnpm run dev', { cwd: __dirname })
+execSync('npm run dev', { cwd: __dirname })
