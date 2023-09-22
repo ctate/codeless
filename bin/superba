@@ -1,3 +1,5 @@
-#!/bin/sh
+#!/usr/bin/env node
 
-npm run dev
+const { execSync } = require('child_process')
+
+execSync('npm run dev')
