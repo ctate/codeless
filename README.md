@@ -3,7 +3,7 @@
 > use AI to generate UI components
 
 <p align="center">
-  <img src="./screenshot.png" alt="codeless screenshot" />
+  <img src="https://github.com/ctate/codeless/blob/main/screenshot.png" alt="codeless screenshot" />
 </p>
 
 ## Quickstart
