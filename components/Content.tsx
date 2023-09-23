@@ -5,6 +5,7 @@ import {
   Apps,
   Code,
   CodeRounded,
+  CopyAll,
   KeyboardReturn,
   Redo,
   Undo,
@@ -17,6 +18,7 @@ import {
   InputAdornment,
   MenuItem,
   Select,
+  Snackbar,
   Stack,
   TextField,
   Typography,
@@ -45,6 +47,8 @@ export const Content: FC = () => {
 
   const [code, setCode] = useState('')
   const [component, setComponent] = useState('')
+  const [hasApiKey, setHasApiKey] = useState(false)
+  const [isCopied, setIsCopied] = useState(false)
   const [html, setHtml] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [numberOfSteps, setNumberOfSteps] = useState(0)
@@ -154,7 +158,14 @@ export const Content: FC = () => {
   }, [setInput, text])
 
   const init = async () => {
-    const res = await axios({
+    const hasApiKeyRes = await axios({
+      method: 'POST',
+      url: '/api/chat/hasApiKey',
+    })
+
+    setHasApiKey(hasApiKeyRes.data.hasApiKey)
+
+    const settingsRes = await axios({
       method: 'POST',
       url: '/api/settings/getValue',
       data: {
@@ -162,7 +173,7 @@ export const Content: FC = () => {
       },
     })
 
-    setModel(res.data.value)
+    setModel(settingsRes.data.value)
 
     setIsInitialized(true)
   }
@@ -249,6 +260,67 @@ export const Content: FC = () => {
       <Stack alignItems="center" height="100vh" justifyContent="center">
         <CircularProgress />
       </Stack>
+    )
+  }
+
+  if (!hasApiKey) {
+    return (
+      <>
+        <Stack alignItems="center" height="100vh" justifyContent="center">
+          <Typography>
+            To use <b>codeless</b>, create an{' '}
+            <pre
+              style={{
+                background: 'black',
+                borderRadius: '5px',
+                display: 'inline-block',
+                fontFamily: 'monospace',
+                padding: '2px 4px',
+              }}
+            >
+              .env.local
+            </pre>{' '}
+            file with your OpenAI{' '}
+            <a
+              href="https://platform.openai.com/account/api-keys"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              API Key
+            </a>
+            :
+            <pre
+              style={{
+                alignItems: 'center',
+                background: 'black',
+                borderRadius: '5px',
+                display: 'flex',
+                fontFamily: '"Courier New", monospace !important',
+                justifyContent: 'space-between',
+                marginTop: '5px',
+                padding: '20px',
+              }}
+            >
+              {'OPENAI_API_KEY=""'}
+              <IconButton
+                onClick={() => {
+                  navigator.clipboard.writeText('OPENAI_API_KEY=""')
+                  setIsCopied(true)
+                }}
+              >
+                <CopyAll sx={{ color: 'white' }} />
+              </IconButton>
+            </pre>
+          </Typography>
+        </Stack>
+        <Snackbar
+          open={isCopied}
+          autoHideDuration={6000}
+          onClose={() => setIsCopied(false)}
+          message="Copied to clipboard"
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        />
+      </>
     )
   }
 
