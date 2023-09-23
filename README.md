@@ -30,7 +30,7 @@ OPENAI_API_KEY=""
 npm run dev
 ```
 
-Then go to: http://localhost:62223
+Then go to: http://localhost:1355
 
 ## Contribute
 

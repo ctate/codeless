@@ -2,9 +2,9 @@
   "name": "codeless",
   "version": "0.2.2",
   "scripts": {
-    "dev": "next dev -p 62223",
+    "dev": "next dev -p 1355",
     "build": "next build",
-    "start": "next start -p 62223",
+    "start": "next start -p 1355",
     "lint": "next lint"
   },
   "dependencies": {
