@@ -1,6 +1,10 @@
-# codeless 🔴
+# codeless
 
 > use AI to generate UI components
+
+<p align="center">
+  <img src="./screenshot.png" alt="codeless screenshot" />
+</p>
 
 ## Quickstart
 
