@@ -13,7 +13,7 @@ interface Settings {
 export async function POST(req: NextRequest) {
   const { key } = (await req.json()) as Request
 
-  const settings = await loadData<Settings>(`./.superba/settings.json`)
+  const settings = await loadData<Settings>(`./.codeless/settings.json`)
 
   const defaultValues: Settings = {
     provider: 'openai',

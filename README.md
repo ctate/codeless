@@ -1,4 +1,4 @@
-# superba 🔴
+# codeless 🔴
 
 > use AI to generate UI components
 
@@ -7,8 +7,8 @@
 ### Install
 
 ```sh
-git clone https://github.com/ctate/superba.git
-cd superba
+git clone https://github.com/ctate/codeless.git
+cd codeless
 npm install
 ```
 
@@ -30,7 +30,7 @@ Then go to: http://localhost:62223
 
 ## Contribute
 
-To contribute to this project, kindly [fork the repository](https://github.com/ctate/superba/fork) and submit a pull request containing your modifications.
+To contribute to this project, kindly [fork the repository](https://github.com/ctate/codeless/fork) and submit a pull request containing your modifications.
 
 ## License
 

@@ -8,14 +8,14 @@ interface Component {
 }
 
 export async function POST(req: NextRequest) {
-  const folders = await listFolders('./.superba/components')
+  const folders = await listFolders('./.codeless/components')
 
   const components: Component[] = []
   for (let i = 0; i < folders.length; i++) {
     const name = folders[i]
 
     const html = await readFile(
-      `./.superba/components/${name}/latest.html`,
+      `./.codeless/components/${name}/latest.html`,
       'utf8'
     )
 

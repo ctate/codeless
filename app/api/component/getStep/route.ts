@@ -19,13 +19,13 @@ export async function POST(req: NextRequest) {
   const { component, step } = (await req.json()) as Request
 
   const html = await readFile(
-    `./.superba/components/${component}/${step}.html`,
+    `./.codeless/components/${component}/${step}.html`,
     'utf8'
   )
 
   const { messages } = await loadData<{
     messages: Chat.ChatCompletionMessage[]
-  }>(`./.superba/components/${component}/${step}.json`)
+  }>(`./.codeless/components/${component}/${step}.json`)
 
   return NextResponse.json({
     html,

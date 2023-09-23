@@ -24,7 +24,7 @@ const openai = new OpenAI({
 })
 
 export async function POST(req: NextRequest) {
-  const settings = await loadData<Settings>('./.superba/settings.json')
+  const settings = await loadData<Settings>('./.codeless/settings.json')
 
   const {
     component: existingComponent,
@@ -36,6 +36,8 @@ export async function POST(req: NextRequest) {
     step?: number
   }
 
+  // TODO: fix
+  // system messages only seem to work whenever they're sent with each user message
   messages.unshift({
     role: 'system',
     content: [
@@ -61,6 +63,12 @@ export async function POST(req: NextRequest) {
     messages[messages.length - 1].content = `${
       messages[messages.length - 1].content
     }. Output with no introduction, no explaintation, only code`
+  }
+
+  // TODO: fix
+  // reduce number of tokens by truncating old messages
+  if (messages.length > 10) {
+    messages.splice(0, messages.length - 10)
   }
 
   const response = await openai.chat.completions.create({
@@ -103,7 +111,7 @@ export async function POST(req: NextRequest) {
       const title = response.choices[0].message.content!
 
       const component = existingComponent || `${paramCase(title)}-${Date.now()}`
-      const fullComponentDir = `./.superba/components/${component}`
+      const fullComponentDir = `./.codeless/components/${component}`
       if (!existsSync(fullComponentDir)) {
         await mkdir(fullComponentDir, { recursive: true })
       }

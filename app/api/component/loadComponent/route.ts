@@ -17,7 +17,7 @@ interface Step {
 export async function POST(req: NextRequest) {
   const { component } = (await req.json()) as Request
 
-  const files = await listFiles(`./.superba/components/${component}`)
+  const files = await listFiles(`./.codeless/components/${component}`)
 
   const steps: Step[] = []
   for (let i = 0; i < files.length; i++) {
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
 
       const { messages } = await loadData<{
         messages: Chat.ChatCompletionMessage[]
-      }>(`./.superba/components/${component}/${stepNumber}.json`)
+      }>(`./.codeless/components/${component}/${stepNumber}.json`)
 
       const existingStepIndex = steps.findIndex((s) => s.number === stepNumber)
       if (existingStepIndex === -1) {
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
       const stepNumber = Number(files[i].replace(/\.html?$/i, ''))
 
       const html = await readFile(
-        `./.superba/components/${component}/${stepNumber}.html`,
+        `./.codeless/components/${component}/${stepNumber}.html`,
         'utf8'
       )
 

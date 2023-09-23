@@ -263,7 +263,7 @@ export const Content: FC = () => {
             sx={{
               borderRadius: '10px',
               overflow: 'hidden',
-              border: '1px #CCC solid',
+              border: '1px #000 solid',
             }}
           >
             <Stack height="100%" width="80vw">
@@ -279,7 +279,7 @@ export const Content: FC = () => {
           {(!messages || !messages.length) && (
             <Stack alignItems="center" direction="row" gap={1}>
               <Typography mb={2} component="h1" variant="h1">
-                superba
+                codeless
               </Typography>
             </Stack>
           )}
@@ -295,7 +295,7 @@ export const Content: FC = () => {
                   }
                   onClick={() => handleUndo()}
                 >
-                  <Undo />
+                  <Undo sx={{ color: 'white' }} />
                 </IconButton>
                 <IconButton
                   disabled={
@@ -306,7 +306,7 @@ export const Content: FC = () => {
                   }
                   onClick={() => handleRedo()}
                 >
-                  <Redo />
+                  <Redo sx={{ color: 'white' }} />
                 </IconButton>
               </div>
             )}
@@ -360,26 +360,38 @@ export const Content: FC = () => {
             {messages && messages.length > 0 && (
               <div>
                 <IconButton onClick={() => setShowCode(true)}>
-                  <CodeRounded />
+                  <CodeRounded sx={{ color: 'white' }} />
                 </IconButton>
                 <IconButton onClick={() => setShowComponents(true)}>
-                  <Apps />
+                  <Apps sx={{ color: 'white' }} />
                 </IconButton>
               </div>
             )}
           </Stack>
           <Stack alignItems="center" direction="row" gap={1}>
-            <Typography>Provider</Typography>
+            <Typography color="gray">Provider</Typography>
             <Select
               onChange={(e) => setProvider(e.target.value)}
+              sx={{
+                color: 'white',
+                '.MuiSvgIcon-root ': {
+                  fill: 'white !important',
+                },
+              }}
               value={provider}
               variant="standard"
             >
               <MenuItem value="openai">OpenAI</MenuItem>
             </Select>
-            <Typography>Model</Typography>
+            <Typography color="gray">Model</Typography>
             <Select
               onChange={(e) => setModel(e.target.value)}
+              sx={{
+                color: 'white',
+                '.MuiSvgIcon-root ': {
+                  fill: 'white !important',
+                },
+              }}
               value={model}
               variant="standard"
             >

@@ -18,7 +18,7 @@ interface Settings {
 export async function POST(req: NextRequest) {
   const { key, value } = (await req.json()) as Request
 
-  const file = './.superba/settings.json'
+  const file = './.codeless/settings.json'
   const settings = await loadData<Settings>(file)
 
   settings[key] = value
