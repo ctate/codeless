@@ -1,9 +1,18 @@
 import { XIcon } from '@/icons/XIcon'
 import { useCodelessStore } from '@/stores/codeless'
 import { GitHub, Twitter } from '@mui/icons-material'
-import { Button, Chip, Menu, MenuItem, Stack, Typography } from '@mui/material'
+import {
+  Box,
+  Button,
+  Chip,
+  Menu,
+  MenuItem,
+  Stack,
+  Typography,
+} from '@mui/material'
 import { signIn, signOut, useSession } from 'next-auth/react'
 import { FC, useState } from 'react'
+import GitHubButton from 'react-github-btn'
 import { ExternalLink } from './ExternalLink'
 
 export const Header: FC = () => {
@@ -55,7 +64,7 @@ export const Header: FC = () => {
                 <Button
                   disableRipple
                   onClick={handleClick}
-                  sx={{ color: 'white' }}
+                  sx={{ color: 'white', p: 0, border: 'none', mt: -.5 }}
                 >
                   <Stack alignItems="center" direction="row" gap={2}>
                     <img height={24} src={session.user.image!} />
@@ -66,6 +75,7 @@ export const Header: FC = () => {
                 </Button>
               ) : (
                 <Button
+                  disableRipple
                   onClick={() => signIn('github')}
                   sx={{ color: 'white', textTransform: 'none' }}
                 >
@@ -74,13 +84,23 @@ export const Header: FC = () => {
               )}
             </>
           )}
-
-          <ExternalLink href="https://github.com/ctate/codeless">
-            <GitHub />
-          </ExternalLink>
           <ExternalLink href="https://x.com/CodelessAI">
             <XIcon size={18} />
           </ExternalLink>
+          <ExternalLink href="https://github.com/ctate/codeless">
+            <GitHub />
+          </ExternalLink>
+          <Box>
+            <GitHubButton
+              href="https://github.com/ctate/codeless"
+              data-color-scheme="no-preference: dark; light: dark; dark: dark;"
+              data-icon="octicon-star"
+              data-show-count="true"
+              aria-label="Star ctate/codeless on GitHub"
+            >
+              Star
+            </GitHubButton>
+          </Box>
         </Stack>
       </Stack>
       <Menu

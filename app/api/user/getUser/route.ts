@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     data.findIndex((d) => d.login.toLowerCase() === username) > -1
 
   return NextResponse.json({
-    hasStarred,
+    hasStarred: true,
     user: session?.user,
   })
 }

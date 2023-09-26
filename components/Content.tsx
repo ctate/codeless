@@ -672,6 +672,7 @@ export const Content: FC = () => {
             </DialogContent>
             <DialogActions>
               <Button
+                disableRipple
                 onClick={() => setDialogType('')}
                 sx={{ textTransform: 'none' }}
               >
@@ -688,6 +689,7 @@ export const Content: FC = () => {
             </DialogContent>
             <DialogActions>
               <Button
+                disableRipple
                 onClick={() => signIn('github')}
                 sx={{ textTransform: 'none' }}
               >
