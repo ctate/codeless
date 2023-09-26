@@ -439,13 +439,18 @@ export const Content: FC = () => {
           <Stack alignItems="center" direction="row" gap={2}>
             {messages && messages.length > 0 && (
               <div>
-                <Tooltip title="Undo">
+                <Tooltip
+                  title={
+                    mode === 'demo' ? 'Not available in Demo Mode' : 'Undo'
+                  }
+                >
                   <IconButton
                     disabled={
                       numberOfSteps === 0 ||
                       step === 1 ||
                       isLoading ||
-                      chatIsLoading
+                      chatIsLoading ||
+                      mode === 'demo'
                     }
                     onClick={() => handleUndo()}
                   >
@@ -455,20 +460,26 @@ export const Content: FC = () => {
                           numberOfSteps === 0 ||
                           step === 1 ||
                           isLoading ||
-                          chatIsLoading
+                          chatIsLoading ||
+                          mode === 'demo'
                             ? 'gray'
                             : 'white',
                       }}
                     />
                   </IconButton>
                 </Tooltip>
-                <Tooltip title="Redo">
+                <Tooltip
+                  title={
+                    mode === 'demo' ? 'Not available in Demo Mode' : 'Redo'
+                  }
+                >
                   <IconButton
                     disabled={
                       numberOfSteps === 0 ||
                       numberOfSteps === step ||
                       isLoading ||
-                      chatIsLoading
+                      chatIsLoading ||
+                      mode === 'demo'
                     }
                     onClick={() => handleRedo()}
                   >
@@ -478,7 +489,8 @@ export const Content: FC = () => {
                           numberOfSteps === 0 ||
                           numberOfSteps === step ||
                           isLoading ||
-                          chatIsLoading
+                          chatIsLoading ||
+                          mode === 'demo'
                             ? 'gray'
                             : 'white',
                       }}
@@ -556,9 +568,16 @@ export const Content: FC = () => {
                     <CodeRounded sx={{ color: 'white' }} />
                   </IconButton>
                 </Tooltip>
-                <Tooltip title="Browse">
-                  <IconButton onClick={() => setShowComponents(true)}>
-                    <Apps sx={{ color: 'white' }} />
+                <Tooltip
+                  title={
+                    mode === 'demo' ? 'Not available in Demo Mode' : 'Browse'
+                  }
+                >
+                  <IconButton
+                    disabled={mode === 'demo'}
+                    onClick={() => setShowComponents(true)}
+                  >
+                    <Apps sx={{ color: mode === 'demo' ? 'gray' : 'white' }} />
                   </IconButton>
                 </Tooltip>
               </div>

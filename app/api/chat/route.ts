@@ -33,10 +33,7 @@ export async function POST(req: NextRequest) {
   }
 
   if (process.env.MODE === 'demo') {
-    const session = await getServerSession(authOptions)
-    if (!session) {
-      return NextResponse.json({}, { status: 401 })
-    }
+    return NextResponse.json({}, { status: 401 })
   }
 
   if (messages.length === 1) {
