@@ -16,6 +16,10 @@ interface Settings {
 }
 
 export async function POST(req: NextRequest) {
+  if (process.env.DATA_STORE === 'db') {
+    return NextResponse.json({})
+  }
+
   const { key, value } = (await req.json()) as Request
 
   const file = './.codeless/settings.json'

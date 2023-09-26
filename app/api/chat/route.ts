@@ -1,3 +1,4 @@
+import { getServerSession } from 'next-auth/next'
 import OpenAI from 'openai'
 import {
   Message,
@@ -5,64 +6,50 @@ import {
   StreamingTextResponse,
   experimental_StreamData,
 } from 'ai'
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { existsSync } from 'fs'
-import { mkdir, readFile, rm, writeFile } from 'fs/promises'
+import { mkdir, rm, writeFile } from 'fs/promises'
 import { listFiles } from '@/utils/listFiles'
 import { paramCase } from 'change-case'
 import { Chat } from 'openai/resources/index.mjs'
 import { cleanHtml } from '@/utils/cleanHtml'
-import { loadData } from '@/utils/loadData'
-
-interface Settings {
-  provider: string
-  model: string
-}
+import { authOptions } from '../auth/[...nextauth]/route'
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY || '',
 })
 
 export async function POST(req: NextRequest) {
-  const settings = await loadData<Settings>('./.codeless/settings.json')
-
   const {
     component: existingComponent,
     messages,
+    model,
     step,
   } = (await req.json()) as {
     component?: string
     messages: Chat.ChatCompletionMessage[]
+    model: 'gpt-3.5-turbo' | 'gpt-4'
     step?: number
   }
 
-  // TODO: fix
-  // system messages only seem to work whenever they're sent with each user message
-  messages.unshift({
-    role: 'system',
-    content: [
-      'You will be asked to write some HTML. Follow these requirements:',
-      '- Use Tailwind',
-      '- Do not include any JavaScript or CSS',
-      '- Include accessibility',
-      '- Do not provide an explanation',
-      '- Only include code *inside* the `body` tag. Do NOT include the `head`, `body` or `html` tags.',
-      '- output with no introduction, no explaintation, only code',
-      '- For any images, use images from pexels',
-      '- Use styles and components from shacdn',
-      '- Use dark primary colors',
-      '- Do NOT include HTML comments',
-      '- Do NOT include `body` element',
-      '- Output with no introduction, no explaintation, only code.',
-    ].join('\n'),
-  })
+  if (process.env.DATA_STORE === 'db') {
+    const session = await getServerSession(authOptions)
+    if (!session) {
+      return NextResponse.json({}, { status: 401 })
+    }
+  }
 
   if (messages.length === 1) {
+    messages.unshift({
+      role: 'system',
+      content:
+        'You will be asked to write some HTML/CSS/JS in one file. Use tailwind. For any images, use images from pexels. Do not provide an explaintation, only code.',
+    })
     messages[1].content = `Write HTML for: ${messages[1].content}.`
   } else {
     messages[messages.length - 1].content = `${
       messages[messages.length - 1].content
-    }. Output with no introduction, no explaintation, only code`
+    }. For any images, use images from pexels. Do not provide an explaintation, only code.`
   }
 
   // TODO: fix
@@ -72,7 +59,7 @@ export async function POST(req: NextRequest) {
   }
 
   const response = await openai.chat.completions.create({
-    model: settings.model,
+    model,
     stream: true,
     messages: messages.map((message) => ({
       content: message.content,
@@ -131,7 +118,7 @@ export async function POST(req: NextRequest) {
       await writeFile(`${fullComponentDir}/${nextId}.html`, cleanHtml(message))
 
       await writeFile(
-        `${fullComponentDir}/${nextId}.latest`,
+        `${fullComponentDir}/latest.json`,
         JSON.stringify({ messages }, null, 2)
       )
       await writeFile(

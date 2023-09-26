@@ -13,12 +13,18 @@ interface Settings {
 export async function POST(req: NextRequest) {
   const { key } = (await req.json()) as Request
 
-  const settings = await loadData<Settings>(`./.codeless/settings.json`)
-
   const defaultValues: Settings = {
     provider: 'openai',
     model: 'gpt-3.5-turbo',
   }
+
+  if (process.env.DATA_STORE === 'db') {
+    return NextResponse.json({
+      value: defaultValues[key],
+    })
+  }
+
+  const settings = await loadData<Settings>(`./.codeless/settings.json`)
 
   return NextResponse.json({
     value: settings[key] || defaultValues[key],

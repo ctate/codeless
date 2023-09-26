@@ -6,13 +6,22 @@ import {
   Code,
   CodeRounded,
   CopyAll,
+  GitHub,
   KeyboardReturn,
+  Mic,
+  MicNone,
   Redo,
+  Twitter,
   Undo,
 } from '@mui/icons-material'
 import {
+  Button,
   CircularProgress,
   Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Drawer,
   IconButton,
   InputAdornment,
@@ -30,8 +39,14 @@ import SyntaxHighlighter from 'react-syntax-highlighter'
 import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs'
 import { Browse } from './Browse'
 import { Message } from 'ai'
+import { signIn, useSession } from 'next-auth/react'
+
+let mediaRecorder: MediaRecorder | null = null
+let audioChunks: BlobPart[] = []
 
 export const Content: FC = () => {
+  const { data: session } = useSession()
+
   const {
     handleSubmit,
     setInput,
@@ -39,8 +54,10 @@ export const Content: FC = () => {
     messages,
     setMessages,
     data,
+    input,
   } = useChat()
 
+  const formRef = useRef<HTMLFormElement>(null)
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
   const [isInitialized, setIsInitialized] = useState(false)
@@ -58,8 +75,13 @@ export const Content: FC = () => {
   const [showComponents, setShowComponents] = useState(false)
   const [title, setTitle] = useState('')
 
+  const [isRecording, setIsRecording] = useState(false)
+  const [audioURL, setAudioURL] = useState('')
+
   const [provider, setProvider] = useState('openai')
   const [model, setModel] = useState('')
+
+  const [dialogType, setDialogType] = useState<'' | 'user' | 'star'>('')
 
   const handleLoadComponent = async (component: string) => {
     setShowComponents(false)
@@ -130,8 +152,20 @@ export const Content: FC = () => {
     setIsLoading(false)
   }
 
-  const handleSubmitForm = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmitForm = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+
+    const userRes = await axios({
+      method: 'POST',
+      url: '/api/user/getUser',
+    })
+    if (!userRes.data.user) {
+      setDialogType('user')
+      return
+    } else if (!userRes.data.hasStarred) {
+      setDialogType('star')
+      return
+    }
 
     const newMessages = messages.slice()
     newMessages.push({
@@ -145,12 +179,54 @@ export const Content: FC = () => {
         body: {
           component,
           messages: newMessages,
+          model,
           step,
         },
       },
     })
 
     setText('')
+  }
+
+  const startRecording = async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    mediaRecorder = new MediaRecorder(stream)
+    audioChunks = []
+
+    mediaRecorder.ondataavailable = (event: BlobEvent) => {
+      audioChunks.push(event.data)
+    }
+
+    mediaRecorder.onstop = () => {
+      const audioBlob = new Blob(audioChunks, { type: 'audio/wav' })
+      const url = URL.createObjectURL(audioBlob)
+      setAudioURL(url)
+
+      uploadAudio(audioBlob)
+    }
+
+    mediaRecorder.start()
+    setIsRecording(true)
+  }
+
+  const stopRecording = () => {
+    if (mediaRecorder) {
+      mediaRecorder.stop()
+    }
+    setIsRecording(false)
+  }
+
+  const uploadAudio = async (audioBlob: Blob) => {
+    const formData = new FormData()
+    formData.append('audio', audioBlob, 'myRecording.wav')
+
+    const response = await axios.post('/api/transcribe', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+
+    setText(response.data.text)
   }
 
   useEffect(() => {
@@ -225,31 +301,49 @@ export const Content: FC = () => {
   }, [chatIsLoading, messages, title])
 
   useEffect(() => {
-    setCode(
-      `export const ${title || 'Component'}: FC = () => {\n  return (\n    ` +
-        html +
-        '\n  )\n}'
-    )
+    setCode(html)
 
     if (!chatIsLoading) {
       if (iframeRef.current) {
-        iframeRef.current.src =
-          'data:text/html;charset=utf-8,' +
-          escape(`<!doctype html>
-        <html>
-        <head>
-          <base href="http://localhost:3000/" />
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <script src="https://cdn.tailwindcss.com"></script>
-        </head>
-        <body style="background-color: #FFF">
-          ${html}
-        </body>
-        </html>`)
+        iframeRef.current.src = 'data:text/html;charset=utf-8,' + escape(html)
       }
     }
   }, [html, chatIsLoading, title])
+
+  useEffect(() => {
+    if (audioURL && input) {
+      const mockEvent = {
+        preventDefault: () => {},
+        currentTarget: document.createElement('form'),
+      } as React.FormEvent<HTMLFormElement>
+
+      const newMessages = messages.slice()
+      newMessages.push({
+        id: `${Math.random()}`,
+        role: 'user',
+        content: input,
+      })
+
+      handleSubmit(mockEvent, {
+        options: {
+          body: {
+            component,
+            messages: newMessages,
+            model,
+            step,
+          },
+        },
+      })
+
+      setText('')
+    }
+  }, [audioURL, input])
+
+  useEffect(() => {
+    if (chatIsLoading) {
+      setAudioURL('')
+    }
+  }, [chatIsLoading])
 
   useEffect(() => {
     init()
@@ -326,6 +420,38 @@ export const Content: FC = () => {
 
   return (
     <>
+      <Stack
+        alignItems="center"
+        direction="row"
+        position="fixed"
+        gap={2}
+        right={20}
+        top={20}
+      >
+        {session?.user ? (
+          <>
+            <img height={24} src={session.user.image!} />
+            {session.user?.email}
+          </>
+        ) : (
+          <Button onClick={() => signIn('github')}>Sign In with GitHub</Button>
+        )}
+
+        <a
+          href="https://github.com/ctate/codeless"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          <GitHub />
+        </a>
+        <a
+          href="https://twitter.com/CodelessAI"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          <Twitter />
+        </a>
+      </Stack>
       <Stack alignItems="center" height="100vh" justifyContent="center">
         {messages && messages.length > 0 && (
           <Stack
@@ -342,7 +468,7 @@ export const Content: FC = () => {
               <iframe
                 frameBorder={0}
                 ref={iframeRef}
-                style={{ height: '100%' }}
+                style={{ backgroundColor: 'black', height: '100%' }}
               />
             </Stack>
           </Stack>
@@ -378,13 +504,23 @@ export const Content: FC = () => {
                   }
                   onClick={() => handleRedo()}
                 >
-                  <Redo sx={{ color: 'white' }} />
+                  <Redo
+                    sx={{
+                      color:
+                        numberOfSteps === 0 ||
+                        numberOfSteps === step ||
+                        isLoading ||
+                        chatIsLoading
+                          ? 'gray'
+                          : 'white',
+                    }}
+                  />
                 </IconButton>
               </div>
             )}
-
-            <Stack flexGrow={1}>
+            <Stack flexGrow={1} position="relative">
               <form
+                ref={formRef}
                 onSubmit={
                   isLoading || chatIsLoading
                     ? (e) => e.preventDefault()
@@ -410,11 +546,11 @@ export const Content: FC = () => {
                               size={24}
                               sx={{ color: 'white', marginRight: '10px' }}
                             />
-                          ) : (
+                          ) : text.length > 0 ? (
                             <KeyboardReturn
                               sx={{ color: 'white', marginRight: '10px' }}
                             />
-                          )}
+                          ) : null}
                         </InputAdornment>
                       ),
                       style: {
@@ -428,6 +564,20 @@ export const Content: FC = () => {
                   />
                 </Stack>
               </form>
+              {!text.length && !isLoading && !chatIsLoading && (
+                <IconButton
+                  onClick={
+                    isRecording ? () => stopRecording() : () => startRecording()
+                  }
+                  sx={{ position: 'absolute', right: 25, top: 9.5 }}
+                >
+                  {isRecording ? (
+                    <MicNone sx={{ color: 'white' }} />
+                  ) : (
+                    <Mic sx={{ color: 'white' }} />
+                  )}
+                </IconButton>
+              )}
             </Stack>
             {messages && messages.length > 0 && (
               <div>
@@ -505,6 +655,38 @@ export const Content: FC = () => {
           </IconButton>
         </Stack>
       )}
+      <Dialog open={dialogType === 'star' || dialogType === 'user'}>
+        {dialogType === 'star' && (
+          <>
+            <DialogTitle>Please star Codeless</DialogTitle>
+            <DialogContent>
+              <Typography gutterBottom>
+                To use this demo, please star this project on GitHub:
+              </Typography>
+              <Stack direction="row" gap={1}>
+                <GitHub />
+                <Typography>
+                  <a href="https://github.com/ctate/codeless">ctate/codeless</a>
+                </Typography>
+              </Stack>
+            </DialogContent>
+            <DialogActions>
+              <Button>Verify</Button>
+            </DialogActions>
+          </>
+        )}
+        {dialogType === 'user' && (
+          <>
+            <DialogTitle>Please sign in</DialogTitle>
+            <DialogContent>
+              To use this demo, please sign in with GitHub.
+            </DialogContent>
+            <DialogActions>
+              <Button>Sign In with GitHub</Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
     </>
   )
 }
