@@ -6,13 +6,14 @@ import axios from 'axios'
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
+  const username = session?.user?.email?.toLowerCase();
 
   const res = await axios(
     'https://api.github.com/repos/ctate/codeless/stargazers?per_page=100'
   )
   const data = res.data as Array<{ login: string }>
   const hasStarred =
-    data.findIndex((d) => d.login === session?.user?.email) > -1
+    data.findIndex((d) => d.login.toLowerCase() === username) > -1
 
   return NextResponse.json({
     hasStarred,
