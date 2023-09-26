@@ -655,7 +655,10 @@ export const Content: FC = () => {
           </IconButton>
         </Stack>
       )}
-      <Dialog open={dialogType === 'star' || dialogType === 'user'}>
+      <Dialog
+        open={dialogType === 'star' || dialogType === 'user'}
+        onClose={() => setDialogType('')}
+      >
         {dialogType === 'star' && (
           <>
             <DialogTitle>Please star Codeless</DialogTitle>
@@ -682,7 +685,9 @@ export const Content: FC = () => {
               To use this demo, please sign in with GitHub.
             </DialogContent>
             <DialogActions>
-              <Button>Sign In with GitHub</Button>
+              <Button onClick={() => signIn('github')}>
+                Sign In with GitHub
+              </Button>
             </DialogActions>
           </>
         )}
