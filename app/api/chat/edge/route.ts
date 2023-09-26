@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
     },
     async onFinal() {
       const response = await openai.chat.completions.create({
-        model: 'gpt-4',
+        model: 'gpt-3.5-turbo',
         messages: [
           ...messages.map((message) => ({
             content: message.content,
