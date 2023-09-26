@@ -68,6 +68,7 @@ export const Content: FC = () => {
   const [isCopied, setIsCopied] = useState(false)
   const [html, setHtml] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [mode, setMode] = useState<'' | 'local' | 'demo'>('')
   const [numberOfSteps, setNumberOfSteps] = useState(0)
   const [step, setStep] = useState(0)
   const [text, setText] = useState('')
@@ -155,16 +156,18 @@ export const Content: FC = () => {
   const handleSubmitForm = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    const userRes = await axios({
-      method: 'POST',
-      url: '/api/user/getUser',
-    })
-    if (!userRes.data.user) {
-      setDialogType('user')
-      return
-    } else if (!userRes.data.hasStarred) {
-      setDialogType('star')
-      return
+    if (mode === 'demo') {
+      const userRes = await axios({
+        method: 'POST',
+        url: '/api/user/getUser',
+      })
+      if (!userRes.data.user) {
+        setDialogType('user')
+        return
+      } else if (!userRes.data.hasStarred) {
+        setDialogType('star')
+        return
+      }
     }
 
     const newMessages = messages.slice()
@@ -240,6 +243,12 @@ export const Content: FC = () => {
     })
 
     setHasApiKey(hasApiKeyRes.data.hasApiKey)
+
+    const modeRes = await axios({
+      method: 'POST',
+      url: '/api/mode/getMode',
+    })
+    setMode(modeRes.data.mode || 'local')
 
     const settingsRes = await axios({
       method: 'POST',
@@ -428,13 +437,19 @@ export const Content: FC = () => {
         right={20}
         top={20}
       >
-        {session?.user ? (
+        {mode === 'demo' && (
           <>
-            <img height={24} src={session.user.image!} />
-            {session.user?.email}
+            {session?.user ? (
+              <>
+                <img height={24} src={session.user.image!} />
+                {session.user?.email}
+              </>
+            ) : (
+              <Button onClick={() => signIn('github')}>
+                Sign In with GitHub
+              </Button>
+            )}
           </>
-        ) : (
-          <Button onClick={() => signIn('github')}>Sign In with GitHub</Button>
         )}
 
         <a

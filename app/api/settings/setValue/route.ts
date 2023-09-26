@@ -16,7 +16,7 @@ interface Settings {
 }
 
 export async function POST(req: NextRequest) {
-  if (process.env.DATA_STORE === 'db') {
+  if (process.env.MODE === 'demo') {
     return NextResponse.json({})
   }
 

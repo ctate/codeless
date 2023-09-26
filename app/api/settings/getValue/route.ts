@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     model: 'gpt-3.5-turbo',
   }
 
-  if (process.env.DATA_STORE === 'db') {
+  if (process.env.MODE === 'demo') {
     return NextResponse.json({
       value: defaultValues[key],
     })
