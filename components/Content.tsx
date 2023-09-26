@@ -42,15 +42,18 @@ import { Message } from 'ai'
 import { signIn, useSession } from 'next-auth/react'
 import { useCodelessStore } from '@/stores/codeless'
 import { Header } from './Header'
+import { PageLoader } from './PageLoader'
 
 let mediaRecorder: MediaRecorder | null = null
 let audioChunks: BlobPart[] = []
 
 export const Content: FC = () => {
-  const hasApiKey = useCodelessStore(state => state.hasApiKey);
-  const init = useCodelessStore(state => state.init);
-  const isInitialized = useCodelessStore(state => state.isInitialized);
-  const mode = useCodelessStore(state => state.mode);
+  const hasApiKey = useCodelessStore((state) => state.hasApiKey)
+  const init = useCodelessStore((state) => state.init)
+  const isInitialized = useCodelessStore((state) => state.isInitialized)
+  const mode = useCodelessStore((state) => state.mode)
+  const model = useCodelessStore((state) => state.model)
+  const setModel = useCodelessStore((state) => state.setModel)
 
   const {
     handleSubmit,
@@ -81,7 +84,6 @@ export const Content: FC = () => {
   const [audioURL, setAudioURL] = useState('')
 
   const [provider, setProvider] = useState('openai')
-  const [model, setModel] = useState('')
 
   const [dialogType, setDialogType] = useState<'' | 'user' | 'star'>('')
 
@@ -333,11 +335,7 @@ export const Content: FC = () => {
   }, [])
 
   if (!isInitialized) {
-    return (
-      <Stack alignItems="center" height="100vh" justifyContent="center">
-        <CircularProgress />
-      </Stack>
-    )
+    return <PageLoader />
   }
 
   if (!hasApiKey) {
@@ -569,7 +567,9 @@ export const Content: FC = () => {
             </Select>
             <Typography color="gray">Model</Typography>
             <Select
-              onChange={(e) => setModel(e.target.value)}
+              onChange={(e) =>
+                setModel(e.target.value as 'gpt-3.5-turbo' | 'gpt-4')
+              }
               sx={{
                 color: 'white',
                 '.MuiSvgIcon-root ': {
