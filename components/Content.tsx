@@ -30,6 +30,7 @@ import {
   Snackbar,
   Stack,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material'
 import { useChat } from 'ai/react'
@@ -43,6 +44,7 @@ import { signIn, useSession } from 'next-auth/react'
 import { useCodelessStore } from '@/stores/codeless'
 import { Header } from './Header'
 import { PageLoader } from './PageLoader'
+import { ExternalLink } from './ExternalLink'
 
 let mediaRecorder: MediaRecorder | null = null
 let audioChunks: BlobPart[] = []
@@ -356,13 +358,9 @@ export const Content: FC = () => {
               .env.local
             </pre>{' '}
             file with your OpenAI{' '}
-            <a
-              href="https://platform.openai.com/account/api-keys"
-              rel="noopener noreferrer"
-              target="_blank"
-            >
+            <ExternalLink href="https://platform.openai.com/account/api-keys">
               API Key
-            </a>
+            </ExternalLink>
             :
             <pre
               style={{
@@ -402,7 +400,12 @@ export const Content: FC = () => {
   return (
     <>
       <Header />
-      <Stack alignItems="center" height="100vh" justifyContent="center">
+      <Stack
+        alignItems="center"
+        height="calc(100vh - 52px)"
+        marginTop={messages && messages.length > 0 ? '52px' : 0}
+        justifyContent="center"
+      >
         {messages && messages.length > 0 && (
           <Stack
             direction="row"
@@ -434,48 +437,52 @@ export const Content: FC = () => {
           <Stack alignItems="center" direction="row" gap={2}>
             {messages && messages.length > 0 && (
               <div>
-                <IconButton
-                  disabled={
-                    numberOfSteps === 0 ||
-                    step === 1 ||
-                    isLoading ||
-                    chatIsLoading
-                  }
-                  onClick={() => handleUndo()}
-                >
-                  <Undo
-                    sx={{
-                      color:
-                        numberOfSteps === 0 ||
-                        step === 1 ||
-                        isLoading ||
-                        chatIsLoading
-                          ? 'gray'
-                          : 'white',
-                    }}
-                  />
-                </IconButton>
-                <IconButton
-                  disabled={
-                    numberOfSteps === 0 ||
-                    numberOfSteps === step ||
-                    isLoading ||
-                    chatIsLoading
-                  }
-                  onClick={() => handleRedo()}
-                >
-                  <Redo
-                    sx={{
-                      color:
-                        numberOfSteps === 0 ||
-                        numberOfSteps === step ||
-                        isLoading ||
-                        chatIsLoading
-                          ? 'gray'
-                          : 'white',
-                    }}
-                  />
-                </IconButton>
+                <Tooltip title="Undo">
+                  <IconButton
+                    disabled={
+                      numberOfSteps === 0 ||
+                      step === 1 ||
+                      isLoading ||
+                      chatIsLoading
+                    }
+                    onClick={() => handleUndo()}
+                  >
+                    <Undo
+                      sx={{
+                        color:
+                          numberOfSteps === 0 ||
+                          step === 1 ||
+                          isLoading ||
+                          chatIsLoading
+                            ? 'gray'
+                            : 'white',
+                      }}
+                    />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Redo">
+                  <IconButton
+                    disabled={
+                      numberOfSteps === 0 ||
+                      numberOfSteps === step ||
+                      isLoading ||
+                      chatIsLoading
+                    }
+                    onClick={() => handleRedo()}
+                  >
+                    <Redo
+                      sx={{
+                        color:
+                          numberOfSteps === 0 ||
+                          numberOfSteps === step ||
+                          isLoading ||
+                          chatIsLoading
+                            ? 'gray'
+                            : 'white',
+                      }}
+                    />
+                  </IconButton>
+                </Tooltip>
               </div>
             )}
             <Stack flexGrow={1} position="relative">
@@ -518,7 +525,8 @@ export const Content: FC = () => {
                         color: '#FFF',
                         borderRadius: '50px',
                         padding: '0 20px',
-                        width: '30vw',
+                        width: '500px',
+                        maxWidth: '80vw',
                       },
                     }}
                   />
@@ -541,12 +549,16 @@ export const Content: FC = () => {
             </Stack>
             {messages && messages.length > 0 && (
               <div>
-                <IconButton onClick={() => setShowCode(true)}>
-                  <CodeRounded sx={{ color: 'white' }} />
-                </IconButton>
-                <IconButton onClick={() => setShowComponents(true)}>
-                  <Apps sx={{ color: 'white' }} />
-                </IconButton>
+                <Tooltip title="Show Code">
+                  <IconButton onClick={() => setShowCode(true)}>
+                    <CodeRounded sx={{ color: 'white' }} />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Browse">
+                  <IconButton onClick={() => setShowComponents(true)}>
+                    <Apps sx={{ color: 'white' }} />
+                  </IconButton>
+                </Tooltip>
               </div>
             )}
           </Stack>
@@ -631,18 +643,19 @@ export const Content: FC = () => {
               <Stack direction="row" gap={1}>
                 <GitHub />
                 <Typography>
-                  <a
-                    href="https://github.com/ctate/codeless"
-                    rel="noopener noreferrer"
-                    target="_blank"
-                  >
+                  <ExternalLink href="https://github.com/ctate/codeless">
                     ctate/codeless
-                  </a>
+                  </ExternalLink>
                 </Typography>
               </Stack>
             </DialogContent>
             <DialogActions>
-              <Button onClick={() => setDialogType('')}>Okay</Button>
+              <Button
+                onClick={() => setDialogType('')}
+                sx={{ textTransform: 'none' }}
+              >
+                Okay
+              </Button>
             </DialogActions>
           </>
         )}
@@ -653,7 +666,10 @@ export const Content: FC = () => {
               To use this demo, please sign in with GitHub.
             </DialogContent>
             <DialogActions>
-              <Button onClick={() => signIn('github')}>
+              <Button
+                onClick={() => signIn('github')}
+                sx={{ textTransform: 'none' }}
+              >
                 Sign In with GitHub
               </Button>
             </DialogActions>
