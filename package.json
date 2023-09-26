@@ -5,7 +5,8 @@
     "dev": "next dev -p 1355",
     "build": "next build",
     "start": "next start -p 1355",
-    "lint": "next lint"
+    "lint": "next lint",
+    "tauri": "tauri"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",
@@ -38,6 +39,7 @@
     "singleQuote": true
   },
   "devDependencies": {
+    "@tauri-apps/cli": "^1.4.0",
     "@types/express": "^4.17.17",
     "@types/react-syntax-highlighter": "^15.5.7"
   }
