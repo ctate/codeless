@@ -65,7 +65,9 @@ export const Content: FC = () => {
     setMessages,
     data,
     input,
-  } = useChat()
+  } = useChat({
+    api: mode === 'demo' ? '/api/chat/edge' : '/api/chat',
+  })
 
   const formRef = useRef<HTMLFormElement>(null)
   const iframeRef = useRef<HTMLIFrameElement>(null)
