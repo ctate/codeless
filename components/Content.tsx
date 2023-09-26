@@ -669,12 +669,18 @@ export const Content: FC = () => {
               <Stack direction="row" gap={1}>
                 <GitHub />
                 <Typography>
-                  <a href="https://github.com/ctate/codeless">ctate/codeless</a>
+                  <a
+                    href="https://github.com/ctate/codeless"
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    ctate/codeless
+                  </a>
                 </Typography>
               </Stack>
             </DialogContent>
             <DialogActions>
-              <Button>Verify</Button>
+              <Button onClick={() => setDialogType('')}>Okay</Button>
             </DialogActions>
           </>
         )}
