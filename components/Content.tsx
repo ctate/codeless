@@ -40,12 +40,17 @@ import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs'
 import { Browse } from './Browse'
 import { Message } from 'ai'
 import { signIn, useSession } from 'next-auth/react'
+import { useCodelessStore } from '@/stores/codeless'
+import { Header } from './Header'
 
 let mediaRecorder: MediaRecorder | null = null
 let audioChunks: BlobPart[] = []
 
 export const Content: FC = () => {
-  const { data: session } = useSession()
+  const hasApiKey = useCodelessStore(state => state.hasApiKey);
+  const init = useCodelessStore(state => state.init);
+  const isInitialized = useCodelessStore(state => state.isInitialized);
+  const mode = useCodelessStore(state => state.mode);
 
   const {
     handleSubmit,
@@ -60,15 +65,11 @@ export const Content: FC = () => {
   const formRef = useRef<HTMLFormElement>(null)
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
-  const [isInitialized, setIsInitialized] = useState(false)
-
   const [code, setCode] = useState('')
   const [component, setComponent] = useState('')
-  const [hasApiKey, setHasApiKey] = useState(false)
   const [isCopied, setIsCopied] = useState(false)
   const [html, setHtml] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [mode, setMode] = useState<'' | 'local' | 'demo'>('')
   const [numberOfSteps, setNumberOfSteps] = useState(0)
   const [step, setStep] = useState(0)
   const [text, setText] = useState('')
@@ -236,33 +237,6 @@ export const Content: FC = () => {
     setInput(text)
   }, [setInput, text])
 
-  const init = async () => {
-    const hasApiKeyRes = await axios({
-      method: 'POST',
-      url: '/api/chat/hasApiKey',
-    })
-
-    setHasApiKey(hasApiKeyRes.data.hasApiKey)
-
-    const modeRes = await axios({
-      method: 'POST',
-      url: '/api/mode/getMode',
-    })
-    setMode(modeRes.data.mode || 'local')
-
-    const settingsRes = await axios({
-      method: 'POST',
-      url: '/api/settings/getValue',
-      data: {
-        key: 'model',
-      },
-    })
-
-    setModel(settingsRes.data.value)
-
-    setIsInitialized(true)
-  }
-
   const setValue = async (key: string, value: string) => {
     await axios({
       method: 'POST',
@@ -429,44 +403,7 @@ export const Content: FC = () => {
 
   return (
     <>
-      <Stack
-        alignItems="center"
-        direction="row"
-        position="fixed"
-        gap={2}
-        right={20}
-        top={20}
-      >
-        {mode === 'demo' && (
-          <>
-            {session?.user ? (
-              <>
-                <img height={24} src={session.user.image!} />
-                {session.user?.email}
-              </>
-            ) : (
-              <Button onClick={() => signIn('github')}>
-                Sign In with GitHub
-              </Button>
-            )}
-          </>
-        )}
-
-        <a
-          href="https://github.com/ctate/codeless"
-          rel="noopener noreferrer"
-          target="_blank"
-        >
-          <GitHub />
-        </a>
-        <a
-          href="https://twitter.com/CodelessAI"
-          rel="noopener noreferrer"
-          target="_blank"
-        >
-          <Twitter />
-        </a>
-      </Stack>
+      <Header />
       <Stack alignItems="center" height="100vh" justifyContent="center">
         {messages && messages.length > 0 && (
           <Stack
@@ -508,7 +445,17 @@ export const Content: FC = () => {
                   }
                   onClick={() => handleUndo()}
                 >
-                  <Undo sx={{ color: 'white' }} />
+                  <Undo
+                    sx={{
+                      color:
+                        numberOfSteps === 0 ||
+                        step === 1 ||
+                        isLoading ||
+                        chatIsLoading
+                          ? 'gray'
+                          : 'white',
+                    }}
+                  />
                 </IconButton>
                 <IconButton
                   disabled={
