@@ -1,6 +1,5 @@
 import { XIcon } from '@/icons/XIcon'
 import { useCodelessStore } from '@/stores/codeless'
-import { GitHub, Twitter } from '@mui/icons-material'
 import {
   Box,
   Button,
@@ -14,6 +13,7 @@ import { signIn, signOut, useSession } from 'next-auth/react'
 import { FC, useState } from 'react'
 import GitHubButton from 'react-github-btn'
 import { ExternalLink } from './ExternalLink'
+import { GitHubIcon } from '@/icons/GitHubIcon'
 
 export const Header: FC = () => {
   const { data: session } = useSession()
@@ -64,7 +64,7 @@ export const Header: FC = () => {
                 <Button
                   disableRipple
                   onClick={handleClick}
-                  sx={{ color: 'white', p: 0, border: 'none', mt: -.5 }}
+                  sx={{ color: 'white', p: 0, border: 'none', mt: -0.5 }}
                 >
                   <Stack alignItems="center" direction="row" gap={2}>
                     <img height={24} src={session.user.image!} />
@@ -88,7 +88,7 @@ export const Header: FC = () => {
             <XIcon size={18} />
           </ExternalLink>
           <ExternalLink href="https://github.com/ctate/codeless">
-            <GitHub />
+            <GitHubIcon size={20} />
           </ExternalLink>
           <Box>
             <GitHubButton
