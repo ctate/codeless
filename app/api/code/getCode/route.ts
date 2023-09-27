@@ -13,6 +13,7 @@ export async function POST(req: NextRequest) {
     code: string
     currentStep: number
     history: number[]
+    image: string
     latestStep: number
     user: string
     versions: Array<{
@@ -36,6 +37,7 @@ export async function POST(req: NextRequest) {
     id,
     currentStep: code.currentStep,
     history: code.history,
+    image: code.image,
     latestStep: code.latestStep,
     user: code.user,
     versions: code.versions,

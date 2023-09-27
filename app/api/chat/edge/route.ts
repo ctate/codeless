@@ -8,6 +8,7 @@ import OpenAI from 'openai'
 import { Chat } from 'openai/resources/index'
 import { NextRequest, NextResponse } from 'next/server'
 import { ChatCompletionMessage } from 'openai/resources/chat/index.mjs'
+import { cleanHtml } from '@/utils/cleanHtml'
 
 export const runtime = 'edge'
 
@@ -26,7 +27,7 @@ export async function POST(req: NextRequest) {
     step?: number
   }
 
-  const messages = previousMessages.slice(-4);
+  const messages = previousMessages.slice(-4)
 
   // component doesn't exist
   const code = await kv.hgetall<{
@@ -55,6 +56,7 @@ export async function POST(req: NextRequest) {
   })
   const userData = (await userRes.json()) as {
     hasStarred: boolean
+    isAdmin: boolean
     user: {
       name: string
       email: string
@@ -63,7 +65,10 @@ export async function POST(req: NextRequest) {
   }
   if (!userData.user || !userData.hasStarred) {
     return NextResponse.json({}, { status: 401 })
-  } else if (userData.user.email !== code.user) {
+  } else if (
+    userData.user.email !== code.user &&
+    userData.user.email !== process.env.ADMIN_USER
+  ) {
     return NextResponse.json({}, { status: 403 })
   }
 
@@ -110,7 +115,7 @@ export async function POST(req: NextRequest) {
         latestStep: newHistory.length,
         user: userData.user.email,
         versions: code.versions.concat({
-          code: message,
+          code: cleanHtml(message),
           messages: messages
             .map((message) => ({
               content: message.content!,
@@ -118,7 +123,7 @@ export async function POST(req: NextRequest) {
             }))
             .concat([
               {
-                content: message,
+                content: cleanHtml(message),
                 role: 'assistant',
               },
             ]),
@@ -128,6 +133,18 @@ export async function POST(req: NextRequest) {
       await kv.hset(id, newData)
 
       data.append(newData)
+
+      await fetch(`${process.env.NEXTAUTH_URL}/api/code/screenshotCode`, {
+        method: 'POST',
+        headers: {
+          cookie: req.headers.get('cookie')!,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          id,
+          dataUrl: 'data:text/html;charset=utf-8,' + escape(message),
+        }),
+      })
 
       data.close()
     },

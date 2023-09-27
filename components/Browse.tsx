@@ -12,8 +12,8 @@ import axios from 'axios'
 import { FC, useEffect, useRef, useState } from 'react'
 
 interface Component {
-  name: string
-  html: string
+  id: string
+  image: string
 }
 
 export const Browse: FC = () => {
@@ -21,7 +21,7 @@ export const Browse: FC = () => {
   const setShowComponents = useCodelessStore((state) => state.setShowComponents)
 
   const setIsLoading = useCodelessStore((state) => state.setIsLoading)
-  const setCode = useCodelessStore((state) => state.setCode)
+  const load = useCodelessStore((state) => state.load)
   // const setMessages = useCodelessStore((state) => state.setMessages)
   const setStep = useCodelessStore((state) => state.setStep)
   const setNumberOfSteps = useCodelessStore((state) => state.setNumberOfSteps)
@@ -36,26 +36,9 @@ export const Browse: FC = () => {
 
     setIsLoading(true)
 
-    const res = await axios({
-      method: 'POST',
-      url: '/api/component/loadComponent',
-      data: {
-        component,
-      },
-    })
-    const data = res.data as {
-      steps: {
-        number: number
-        html: string
-        messages: Message[]
-      }[]
-    }
+    await load(component)
 
-    const latestStep = data.steps.sort((a, b) => b.number - a.number)[0]
-    setCode(latestStep.html)
-    // setMessages(data.steps.flatMap((step) => step.messages))
-    setStep(data.steps.length)
-    setNumberOfSteps(data.steps.length)
+    history.pushState({}, '', component)
 
     setIsLoading(false)
   }
@@ -66,33 +49,21 @@ export const Browse: FC = () => {
       url: '/api/code/listCode',
     })
 
-    setComponents([])
+    setComponents(
+      res.data.code.map((c: any) => ({
+        id: c.id.slice(5),
+        image: c.image,
+      }))
+    )
 
     setIsInitialized(true)
   }
 
   useEffect(() => {
-    frameRefs.current.forEach((element, index) => {
-      element.src =
-        'data:text/html;charset=utf-8,' +
-        escape(`<!doctype html>
-        <html>
-        <head>
-          <base href="http://localhost:3000/" />
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <script src="https://cdn.tailwindcss.com"></script>
-        </head>
-        <body style="background-color: #FFF">
-          ${components[index].html}
-        </body>
-        </html>`)
-    })
-  }, [components, frameRefs])
-
-  useEffect(() => {
-    init()
-  }, [])
+    if (showComponents) {
+      init()
+    }
+  }, [showComponents])
 
   return (
     <>
@@ -115,7 +86,7 @@ export const Browse: FC = () => {
               {components.map((component, index) => (
                 <Grid
                   item
-                  key={component.name}
+                  key={component.id}
                   xs={4}
                   sx={{
                     overflow: 'hidden',
@@ -124,16 +95,14 @@ export const Browse: FC = () => {
                     height: '300px',
                   }}
                 >
-                  <iframe
-                    frameBorder={0}
-                    ref={(ref) => {
-                      ;(frameRefs.current as any)[index] = ref
-                    }}
-                    height="100%"
+                  <img
+                    src={component.image}
+                    style={{ objectFit: 'cover' }}
                     width="100%"
+                    height="100%"
                   />
                   <button
-                    onClick={() => handleLoadComponent(component.name)}
+                    onClick={() => handleLoadComponent(component.id)}
                     style={{
                       background: 'none',
                       border: 'none',
