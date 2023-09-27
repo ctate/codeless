@@ -27,7 +27,13 @@ export async function POST(req: NextRequest) {
     step?: number
   }
 
-  const messages = previousMessages.slice(-4)
+  const messages = previousMessages.filter((message) => message.role === 'user').slice(-4)
+  const lastAssitanceMessage = previousMessages.findLast(
+    (message) => message.role === 'assistant'
+  )
+  if (lastAssitanceMessage) {
+    messages.splice(messages.length - 1, 0, lastAssitanceMessage)
+  }
 
   // component doesn't exist
   const code = await kv.hgetall<{
@@ -77,7 +83,7 @@ export async function POST(req: NextRequest) {
   } else {
     messages[messages.length - 1].content = `${
       messages[messages.length - 1].content
-    }. Reuse the previous HTML in full. Do not provide an explaintation, only code. Do not use any markdown. Return the full HTML.`
+    }. Update the HTML from the previous response to handle this request. Do not provide an explaintation, only code. Do not use any markdown. Return the full HTML.`
   }
 
   const systemMessages: ChatCompletionMessage[] = [

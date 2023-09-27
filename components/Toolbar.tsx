@@ -20,6 +20,7 @@ import { ProviderField } from './Toolbar/ProviderField'
 import { ModelField } from './Toolbar/ModelField'
 import { MicButton } from './Toolbar/MicButton'
 import { nanoid } from 'nanoid'
+import { ReloadButton } from './Toolbar/ReloadButton'
 
 export const Toolbar: FC = () => {
   const setCode = useCodelessStore((state) => state.setCode)
@@ -209,6 +210,7 @@ export const Toolbar: FC = () => {
           <div>
             <UndoButton />
             <RedoButton />
+            <ReloadButton />
           </div>
         )}
         <Stack flexGrow={1} position="relative">
