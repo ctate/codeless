@@ -18,13 +18,15 @@ const openai = new OpenAI({
 export async function POST(req: NextRequest) {
   const {
     id,
-    messages,
+    messages: previousMessages,
     step = 0,
   } = (await req.json()) as {
     id: string
     messages: Chat.ChatCompletionMessage[]
     step?: number
   }
+
+  const messages = previousMessages.slice(-4);
 
   // component doesn't exist
   const code = await kv.hgetall<{
@@ -72,10 +74,6 @@ export async function POST(req: NextRequest) {
       messages[messages.length - 1].content
     }. Reuse the previous HTML in full. Do not provide an explaintation, only code. Do not use any markdown. Return the full HTML.`
   }
-
-  // TODO: fix
-  // reduce number of tokens by truncating old messages
-  messages.slice(-6)
 
   const systemMessages: ChatCompletionMessage[] = [
     {
