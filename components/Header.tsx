@@ -14,6 +14,7 @@ import { FC, useState } from 'react'
 import GitHubButton from 'react-github-btn'
 import { ExternalLink } from './ExternalLink'
 import { GitHubIcon } from '@/icons/GitHubIcon'
+import Link from 'next/link'
 
 export const Header: FC = () => {
   const { data: session } = useSession()
@@ -49,12 +50,14 @@ export const Header: FC = () => {
       >
         <Stack>
           {mode === 'demo' && (
-            <Chip
-              label="Demo Mode"
-              color="default"
-              variant="outlined"
-              sx={{ color: 'white' }}
-            />
+            <Link href="/">
+              <Chip
+                label="Demo Mode"
+                color="default"
+                variant="outlined"
+                sx={{ color: 'white' }}
+              />
+            </Link>
           )}
         </Stack>
         <Stack alignItems="center" direction="row" gap={2}>

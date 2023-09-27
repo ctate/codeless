@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
   } else {
     messages[messages.length - 1].content = `${
       messages[messages.length - 1].content
-    }. For any images, use images from pexels. Do not provide an explaintation, only code.`
+    }. Do not provide an explaintation, only code.`
   }
 
   // TODO: fix

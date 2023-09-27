@@ -1,13 +1,12 @@
-import OpenAI from 'openai'
 import {
   OpenAIStream,
   StreamingTextResponse,
   experimental_StreamData,
 } from 'ai'
+import { kv } from '@vercel/kv'
+import OpenAI from 'openai'
+import { Chat } from 'openai/resources/index'
 import { NextRequest, NextResponse } from 'next/server'
-import { paramCase } from 'change-case'
-import { Chat } from 'openai/resources/index.mjs'
-import axios from 'axios'
 
 export const runtime = 'edge'
 
@@ -17,31 +16,33 @@ const openai = new OpenAI({
 
 export async function POST(req: NextRequest) {
   const {
-    component: existingComponent,
+    id,
     messages,
-    model,
     step,
   } = (await req.json()) as {
-    component?: string
+    id: string
     messages: Chat.ChatCompletionMessage[]
-    model: 'gpt-3.5-turbo' | 'gpt-4'
     step?: number
   }
 
-  if (process.env.MODE === 'demo') {
-    const userRes = await fetch(
-      `${process.env.NEXTAUTH_URL}/api/user/getUser`,
-      {
-        method: 'POST',
-        headers: {
-          cookie: req.headers.get('cookie')!,
-        },
-      }
-    )
-    const data = await userRes.json()
-    if (!data.user || !data.hasStarred) {
-      return NextResponse.json({}, { status: 401 })
-    }
+  // user not authenticated
+  const userRes = await fetch(`${process.env.NEXTAUTH_URL}/api/user/getUser`, {
+    method: 'POST',
+    headers: {
+      cookie: req.headers.get('cookie')!,
+    },
+  })
+  const userData = await userRes.json()
+  if (!userData.user || !userData.hasStarred) {
+    return NextResponse.json({}, { status: 401 })
+  }
+
+  // component doesn't exist
+  const code = await kv.hgetall<{
+    latestStep: number;
+  }>(id);
+  if (!code) {
+    return NextResponse.json({}, { status: 409 })
   }
 
   if (messages.length === 1) {
@@ -54,7 +55,7 @@ export async function POST(req: NextRequest) {
   } else {
     messages[messages.length - 1].content = `${
       messages[messages.length - 1].content
-    }. For any images, use images from pexels. Do not provide an explaintation, only code.`
+    }. Do not provide an explaintation, only code.`
   }
 
   // TODO: fix
@@ -81,35 +82,17 @@ export async function POST(req: NextRequest) {
       message += token
     },
     async onFinal() {
-      const response = await openai.chat.completions.create({
-        model: 'gpt-3.5-turbo',
-        messages: [
-          ...messages.map((message) => ({
-            content: message.content,
-            role: message.role,
-            function_call: message.function_call,
-          })),
-          {
-            role: 'assistant',
-            content: message,
-          },
-          {
-            role: 'user',
-            content: `Come up with a name for this component. Don't include any other text other than the name. The name should be Pascal case and work in JavaScript as a variable.`,
-          },
-        ],
+      const nextStep = code.latestStep + 1;
+
+      await kv.hset(id, {
+        prompt: messages[messages.length - 1].content,
+        html: message,
+        user: userData.email || '',
+        latestStep: nextStep
       })
 
-      const title = response.choices[0].message.content!
-
-      const component = existingComponent || `${paramCase(title)}-${Date.now()}`
-      const fullComponentDir = `./.codeless/components/${component}`
-      const nextId = step ? step + 1 : 1
-
       data.append({
-        component,
-        step: nextId,
-        title,
+        step: nextStep,
       })
 
       data.close()
