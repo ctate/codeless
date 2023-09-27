@@ -73,7 +73,7 @@ export const Browse: FC = () => {
         <Stack p={2}>
           <Container maxWidth="xl">
             <Typography component="h3" mb={4} variant="h4">
-              Browse Random
+              Browse All
             </Typography>
             {isLoadingBrowse && (
               <Stack alignItems="center" p={5}>

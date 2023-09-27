@@ -275,7 +275,7 @@ export const Toolbar: FC = () => {
               onClick={() => setShowComponents(true)}
             >
               <Stack alignItems="center" direction="row" gap={1}>
-                Browse Random
+                Browse All
                 <AutoAwesome />
               </Stack>
             </Button>
