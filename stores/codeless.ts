@@ -158,7 +158,7 @@ export const createCodelessSlice: StateCreator<CodelessState> = (set) => ({
       method: 'POST',
       url: '/api/code/getCode',
       data: {
-        id,
+        id: `code/${id}`,
       },
     })
 
@@ -166,7 +166,7 @@ export const createCodelessSlice: StateCreator<CodelessState> = (set) => ({
       code: codeRes.data.code,
       isInitialized: true,
       hasApiKey: hasApiKeyRes.data.hasApiKey,
-      html: codeRes.data.html,
+      html: codeRes.data.code,
       id: codeRes.data.id,
       mode: modeRes.data.mode || 'local',
       model: settingsRes.data.value || 'gpt-3.5-turbo',

@@ -63,10 +63,10 @@ export const Browse: FC = () => {
   const init = async () => {
     const res = await axios({
       method: 'POST',
-      url: '/api/component/listComponents',
+      url: '/api/code/listCode',
     })
 
-    setComponents(res.data.components)
+    setComponents([])
 
     setIsInitialized(true)
   }
@@ -93,14 +93,6 @@ export const Browse: FC = () => {
   useEffect(() => {
     init()
   }, [])
-
-  if (!isInitialized) {
-    return (
-      <Stack alignItems="center" p={5}>
-        <CircularProgress />
-      </Stack>
-    )
-  }
 
   return (
     <>

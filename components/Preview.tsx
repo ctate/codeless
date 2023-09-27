@@ -4,17 +4,20 @@ import { FC, useEffect, useRef } from 'react'
 
 export const Preview: FC = () => {
   const html = useCodelessStore((state) => state.html)
+
   const id = useCodelessStore((state) => state.id)
+
+  const isLoading = useCodelessStore((state) => state.isLoading)
 
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
   useEffect(() => {
-    if (!iframeRef.current) {
+    if (!iframeRef.current || isLoading) {
       return
     }
 
     iframeRef.current.src = 'data:text/html;charset=utf-8,' + escape(html)
-  }, [html, iframeRef])
+  }, [html, iframeRef, isLoading])
 
   if (!id) {
     return null
@@ -35,7 +38,7 @@ export const Preview: FC = () => {
         <iframe
           frameBorder={0}
           ref={iframeRef}
-          style={{ backgroundColor: 'black', height: '100%' }}
+          style={{ backgroundColor: 'white', height: '100%' }}
         />
       </Stack>
     </Stack>

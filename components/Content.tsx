@@ -38,13 +38,6 @@ export const Content: FC = () => {
   }
 
   useEffect(() => {
-    if (!provider) {
-      return
-    }
-    setValue('provider', provider)
-  }, [provider])
-
-  useEffect(() => {
     if (!model) {
       return
     }

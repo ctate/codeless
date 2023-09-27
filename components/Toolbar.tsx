@@ -1,29 +1,24 @@
 import { useCodelessStore } from '@/stores/codeless'
 import { cleanHtml } from '@/utils/cleanHtml'
-import {
-  Apps,
-  CodeRounded,
-  KeyboardReturn,
-  Mic,
-  MicNone,
-  Redo,
-  Undo,
-} from '@mui/icons-material'
+import { KeyboardReturn, Mic, MicNone } from '@mui/icons-material'
 import {
   CircularProgress,
   IconButton,
   InputAdornment,
-  MenuItem,
-  Select,
   Stack,
   TextField,
-  Tooltip,
   Typography,
 } from '@mui/material'
 import { useChat } from 'ai/react'
 import axios from 'axios'
 import { useRouter } from 'next/navigation'
 import { FC, FormEvent, useEffect, useRef, useState } from 'react'
+import { UndoButton } from './Toolbar/UndoButton'
+import { RedoButton } from './Toolbar/RedoButton'
+import { BrowseButton } from './Toolbar/BrowseButton'
+import { CodeButton } from './Toolbar/CodeButton'
+import { ProviderField } from './Toolbar/ProviderField'
+import { ModelField } from './Toolbar/ModelField'
 
 let mediaRecorder: MediaRecorder | null = null
 let audioChunks: BlobPart[] = []
@@ -46,17 +41,8 @@ export const Toolbar: FC = () => {
   const mode = useCodelessStore((state) => state.mode)
 
   const model = useCodelessStore((state) => state.model)
-  const setModel = useCodelessStore((state) => state.setModel)
 
-  const numberOfSteps = useCodelessStore((state) => state.numberOfSteps)
   const setNumberOfSteps = useCodelessStore((state) => state.setNumberOfSteps)
-
-  const provider = useCodelessStore((state) => state.provider)
-  const setProvider = useCodelessStore((state) => state.setProvider)
-
-  const setShowCode = useCodelessStore((state) => state.setShowCode)
-
-  const setShowComponents = useCodelessStore((state) => state.setShowComponents)
 
   const step = useCodelessStore((state) => state.step)
   const setStep = useCodelessStore((state) => state.setStep)
@@ -67,11 +53,9 @@ export const Toolbar: FC = () => {
   const {
     data,
     handleSubmit,
-    input,
     isLoading: chatIsLoading,
     messages,
     setInput,
-    setMessages,
   } = useChat({
     api: mode === 'demo' ? '/api/chat/edge' : '/api/chat',
   })
@@ -80,44 +64,6 @@ export const Toolbar: FC = () => {
 
   const [isRecording, setIsRecording] = useState(false)
   const [audioURL, setAudioURL] = useState('')
-
-  const handleUndo = () => {
-    if (step === 1) {
-      return
-    }
-
-    const newStep = step - 1
-
-    handleStep(newStep)
-  }
-
-  const handleRedo = () => {
-    if (step === numberOfSteps) {
-      return
-    }
-
-    const newStep = step + 1
-
-    handleStep(newStep)
-  }
-  const handleStep = async (newStep: number) => {
-    setIsLoading(true)
-
-    const res = await axios({
-      method: 'POST',
-      url: '/api/component/getStep',
-      data: {
-        id,
-        step: newStep,
-      },
-    })
-
-    setHtml(res.data.html)
-    setMessages(res.data.messages)
-
-    setStep(newStep)
-    setIsLoading(false)
-  }
 
   const handleSubmitForm = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -138,24 +84,43 @@ export const Toolbar: FC = () => {
       }
     }
 
-    const codeId = await (async () => {
-      if (id) {
-        return id
-      }
-
-      const codeRes = await axios({
-        method: 'POST',
-        url: '/api/code/createCode',
+    if (id) {
+      const newMessages = messages.slice()
+      newMessages.push({
+        id: `${Math.random()}`,
+        role: 'user',
+        content: text,
       })
-      const codeData = codeRes.data as {
-        id: string
-      }
-      setId(codeData.id)
 
-      router.push(`/code/${codeData.id}`)
+      handleSubmit(e, {
+        options: {
+          body: {
+            id,
+            messages: newMessages,
+            model,
+            step,
+          },
+        },
+      })
 
-      return codeData.id
-    })()
+      setText('')
+
+      return
+    }
+
+    const codeRes = await axios({
+      method: 'POST',
+      url: '/api/code/createCode',
+      data: {
+        prompt: text,
+      },
+    })
+    const codeData = codeRes.data as {
+      id: string
+    }
+    setId(codeData.id)
+
+    router.replace(codeData.id)
 
     const newMessages = messages.slice()
     newMessages.push({
@@ -167,7 +132,7 @@ export const Toolbar: FC = () => {
     handleSubmit(e, {
       options: {
         body: {
-          id: codeId,
+          id: codeData.id,
           messages: newMessages,
           model,
           step,
@@ -175,7 +140,6 @@ export const Toolbar: FC = () => {
       },
     })
 
-    setIsLoading(false)
     setText('')
   }
 
@@ -244,6 +208,12 @@ export const Toolbar: FC = () => {
     setInput(text)
   }, [setInput, text])
 
+  useEffect(() => {
+    if (!chatIsLoading) {
+      setIsLoading(false)
+    }
+  }, [chatIsLoading, setIsLoading])
+
   //   useEffect(() => {
   //     if (audioURL && input) {
   //       const mockEvent = {
@@ -296,60 +266,8 @@ export const Toolbar: FC = () => {
       <Stack alignItems="center" direction="row" gap={2}>
         {!!id && (
           <div>
-            <Tooltip
-              title={mode === 'demo' ? 'Not available in Demo Mode' : 'Undo'}
-            >
-              <IconButton
-                disabled={
-                  numberOfSteps === 0 ||
-                  step === 1 ||
-                  isLoading ||
-                  chatIsLoading ||
-                  mode === 'demo'
-                }
-                onClick={() => handleUndo()}
-              >
-                <Undo
-                  sx={{
-                    color:
-                      numberOfSteps === 0 ||
-                      step === 1 ||
-                      isLoading ||
-                      chatIsLoading ||
-                      mode === 'demo'
-                        ? 'gray'
-                        : 'white',
-                  }}
-                />
-              </IconButton>
-            </Tooltip>
-            <Tooltip
-              title={mode === 'demo' ? 'Not available in Demo Mode' : 'Redo'}
-            >
-              <IconButton
-                disabled={
-                  numberOfSteps === 0 ||
-                  numberOfSteps === step ||
-                  isLoading ||
-                  chatIsLoading ||
-                  mode === 'demo'
-                }
-                onClick={() => handleRedo()}
-              >
-                <Redo
-                  sx={{
-                    color:
-                      numberOfSteps === 0 ||
-                      numberOfSteps === step ||
-                      isLoading ||
-                      chatIsLoading ||
-                      mode === 'demo'
-                        ? 'gray'
-                        : 'white',
-                  }}
-                />
-              </IconButton>
-            </Tooltip>
+            <UndoButton />
+            <RedoButton />
           </div>
         )}
         <Stack flexGrow={1} position="relative">
@@ -416,56 +334,14 @@ export const Toolbar: FC = () => {
         </Stack>
         {!!id && (
           <div>
-            <Tooltip title="Show Code">
-              <IconButton onClick={() => setShowCode(true)}>
-                <CodeRounded sx={{ color: 'white' }} />
-              </IconButton>
-            </Tooltip>
-            <Tooltip
-              title={mode === 'demo' ? 'Not available in Demo Mode' : 'Browse'}
-            >
-              <IconButton
-                disabled={mode === 'demo'}
-                onClick={() => setShowComponents(true)}
-              >
-                <Apps sx={{ color: mode === 'demo' ? 'gray' : 'white' }} />
-              </IconButton>
-            </Tooltip>
+            <CodeButton />
+            <BrowseButton />
           </div>
         )}
       </Stack>
       <Stack alignItems="center" direction="row" gap={1}>
-        <Typography color="gray">Provider</Typography>
-        <Select
-          onChange={(e) => setProvider(e.target.value as 'openai')}
-          sx={{
-            color: 'white',
-            '.MuiSvgIcon-root ': {
-              fill: 'white !important',
-            },
-          }}
-          value={provider}
-          variant="standard"
-        >
-          <MenuItem value="openai">OpenAI</MenuItem>
-        </Select>
-        <Typography color="gray">Model</Typography>
-        <Select
-          onChange={(e) =>
-            setModel(e.target.value as 'gpt-3.5-turbo' | 'gpt-4')
-          }
-          sx={{
-            color: 'white',
-            '.MuiSvgIcon-root ': {
-              fill: 'white !important',
-            },
-          }}
-          value={model}
-          variant="standard"
-        >
-          <MenuItem value="gpt-3.5-turbo">3.5</MenuItem>
-          <MenuItem value="gpt-4">4</MenuItem>
-        </Select>
+        <ProviderField />
+        <ModelField />
       </Stack>
     </Stack>
   )

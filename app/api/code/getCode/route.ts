@@ -10,8 +10,14 @@ export async function POST(req: NextRequest) {
 
   const code = await kv.hgetall<{
     id: string
-    html: string
+    code: string
+    currentStep: number
+    history: number[]
     latestStep: number
+    versions: Array<{
+      code: string
+      prompt: string
+    }>
   }>(id)
   if (!code) {
     return NextResponse.json(
@@ -24,7 +30,10 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     id,
-    html: code.html,
+    code: code.code,
+    currentStep: code.currentStep,
+    history: code.history,
     latestStep: code.latestStep,
+    versions: code.versions,
   })
 }

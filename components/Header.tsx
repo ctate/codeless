@@ -19,6 +19,8 @@ import Link from 'next/link'
 export const Header: FC = () => {
   const { data: session } = useSession()
 
+  const id = useCodelessStore((state) => state.id)
+
   const mode = useCodelessStore((state) => state.mode)
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
@@ -48,16 +50,26 @@ export const Header: FC = () => {
         right={20}
         top={20}
       >
-        <Stack>
-          {mode === 'demo' && (
+        <Stack alignItems="center" direction="row" gap={1}>
+          {id && (
             <Link href="/">
-              <Chip
-                label="Demo Mode"
-                color="default"
-                variant="outlined"
-                sx={{ color: 'white' }}
-              />
+              <Typography
+                component="h1"
+                variant="body1"
+                textTransform="lowercase"
+              >
+                Codeless
+              </Typography>
             </Link>
+          )}
+          {mode === 'demo' && (
+            <Chip
+              label="Beta"
+              color="default"
+              size="small"
+              variant="outlined"
+              sx={{ color: 'white', textTransform: 'lowercase' }}
+            />
           )}
         </Stack>
         <Stack alignItems="center" direction="row" gap={2}>

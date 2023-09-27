@@ -15,11 +15,7 @@ const openai = new OpenAI({
 })
 
 export async function POST(req: NextRequest) {
-  const {
-    id,
-    messages,
-    step,
-  } = (await req.json()) as {
+  const { id, messages, step } = (await req.json()) as {
     id: string
     messages: Chat.ChatCompletionMessage[]
     step?: number
@@ -39,8 +35,13 @@ export async function POST(req: NextRequest) {
 
   // component doesn't exist
   const code = await kv.hgetall<{
-    latestStep: number;
-  }>(id);
+    history: number[]
+    latestStep: number
+    versions: Array<{
+      code: string
+      prompt: string
+    }>
+  }>(id)
   if (!code) {
     return NextResponse.json({}, { status: 409 })
   }
@@ -82,13 +83,19 @@ export async function POST(req: NextRequest) {
       message += token
     },
     async onFinal() {
-      const nextStep = code.latestStep + 1;
+      const nextStep = code.latestStep + 1
 
       await kv.hset(id, {
+        code: message,
+        currentStep: code.versions.length,
+        history: code.history.concat(code.versions.length),
+        latestStep: nextStep,
         prompt: messages[messages.length - 1].content,
-        html: message,
         user: userData.email || '',
-        latestStep: nextStep
+        versions: code.versions.concat({
+          code: message,
+          prompt: messages.slice(-1)[0].content!,
+        }),
       })
 
       data.append({
