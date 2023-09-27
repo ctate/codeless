@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
     {
       role: 'system',
       content:
-        'You will be asked to write some HTML/CSS/JS in one file. Use tailwind. If the user prompt asks for any images, use images from pexels. Do not provide an explaintation, only code.',
+        'You will be asked to write some HTML/CSS/JS in one file. Use Tailwind via https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css. If the user prompt asks for any images, use images from pexels. Do not provide an explaintation, only code.',
     },
   ]
 
