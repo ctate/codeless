@@ -2,7 +2,9 @@ import { kv } from '@vercel/kv'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: NextRequest) {
-  const ids = await kv.keys('code/*')
+  const ids = (await kv.keys('code/*'))
+    .sort(() => 0.5 - Math.random())
+    .slice(0, 12)
 
   const code = (
     await Promise.all(
