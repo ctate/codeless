@@ -7,44 +7,34 @@ import { FC, useEffect, useState } from 'react'
 export const RedoButton: FC = () => {
   const id = useCodelessStore((state) => state.id)
 
-  const setHtml = useCodelessStore((state) => state.setHtml)
+  const history = useCodelessStore((state) => state.history)
+
+  const setCode = useCodelessStore((state) => state.setCode)
 
   const isLoading = useCodelessStore((state) => state.isLoading)
-  const setIsLoading = useCodelessStore((state) => state.setIsLoading)
 
   const numberOfSteps = useCodelessStore((state) => state.numberOfSteps)
 
   const step = useCodelessStore((state) => state.step)
   const setStep = useCodelessStore((state) => state.setStep)
 
+  const versions = useCodelessStore((state) => state.versions)
+
   const [isDisabled, setIsDiabled] = useState(false)
 
   const handleRedo = async () => {
-    if (step === 1) {
+    if (step >= numberOfSteps) {
       return
     }
 
-    const newStep = step - 1
+    const newStep = step + 1
 
-    setIsLoading(true)
-
-    const res = await axios({
-      method: 'POST',
-      url: '/api/component/getStep',
-      data: {
-        id,
-        step: newStep,
-      },
-    })
-
-    setHtml(res.data.html)
-
+    setCode(versions[history[newStep]].code)
     setStep(newStep)
-    setIsLoading(false)
   }
 
   useEffect(() => {
-    setIsDiabled(isLoading || numberOfSteps === 0 || numberOfSteps === step)
+    setIsDiabled(isLoading || numberOfSteps === 0 || numberOfSteps - 1 <= step)
   }, [isLoading, numberOfSteps, step])
 
   return (

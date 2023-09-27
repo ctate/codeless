@@ -51,24 +51,18 @@ export const Header: FC = () => {
         top={20}
       >
         <Stack alignItems="center" direction="row" gap={1}>
-          {id && (
-            <Link href="/">
-              <Typography
-                component="h1"
-                variant="body1"
-                textTransform="lowercase"
-              >
-                Codeless
-              </Typography>
-            </Link>
-          )}
+          <Link href="/">
+            <Typography component="h1" variant="h6" textTransform="lowercase">
+              Codeless
+            </Typography>
+          </Link>
           {mode === 'demo' && (
             <Chip
               label="Beta"
-              color="default"
+              color="primary"
               size="small"
               variant="outlined"
-              sx={{ color: 'white', textTransform: 'lowercase' }}
+              sx={{ textTransform: 'lowercase' }}
             />
           )}
         </Stack>

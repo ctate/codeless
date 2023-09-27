@@ -3,7 +3,7 @@ import { Stack } from '@mui/material'
 import { FC, useEffect, useRef } from 'react'
 
 export const Preview: FC = () => {
-  const html = useCodelessStore((state) => state.html)
+  const code = useCodelessStore((state) => state.code)
 
   const id = useCodelessStore((state) => state.id)
 
@@ -16,8 +16,8 @@ export const Preview: FC = () => {
       return
     }
 
-    iframeRef.current.src = 'data:text/html;charset=utf-8,' + escape(html)
-  }, [html, iframeRef, isLoading])
+    iframeRef.current.src = 'data:text/html;charset=utf-8,' + escape(code)
+  }, [code, iframeRef, isLoading])
 
   if (!id) {
     return null

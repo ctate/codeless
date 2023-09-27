@@ -5,6 +5,7 @@ import { getServerSession } from 'next-auth'
 import OpenAI from 'openai'
 
 import { authOptions } from '../../auth/[...nextauth]/route'
+import { paramCase } from 'change-case'
 
 interface Request {
   prompt: string
@@ -39,14 +40,16 @@ export async function POST(req: NextRequest) {
     ],
   })
 
-  const id = `code/${response.choices[0].message.content}-${Date.now()}`
+  const id = `code/${paramCase(
+    `${response.choices[0].message.content}-${Date.now()}`
+  )}`
 
   await kv.hset(id, {
+    currentStep: -1,
     history: [],
-    html: '',
-    latestStep: 0,
+    latestStep: -1,
     user: username,
-    versions: []
+    versions: [],
   })
 
   return NextResponse.json({

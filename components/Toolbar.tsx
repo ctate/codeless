@@ -1,9 +1,8 @@
 import { useCodelessStore } from '@/stores/codeless'
 import { cleanHtml } from '@/utils/cleanHtml'
-import { KeyboardReturn, Mic, MicNone } from '@mui/icons-material'
+import { KeyboardReturn } from '@mui/icons-material'
 import {
   CircularProgress,
-  IconButton,
   InputAdornment,
   Stack,
   TextField,
@@ -11,7 +10,6 @@ import {
 } from '@mui/material'
 import { useChat } from 'ai/react'
 import axios from 'axios'
-import { useRouter } from 'next/navigation'
 import { FC, FormEvent, useEffect, useRef, useState } from 'react'
 import { UndoButton } from './Toolbar/UndoButton'
 import { RedoButton } from './Toolbar/RedoButton'
@@ -19,18 +17,16 @@ import { BrowseButton } from './Toolbar/BrowseButton'
 import { CodeButton } from './Toolbar/CodeButton'
 import { ProviderField } from './Toolbar/ProviderField'
 import { ModelField } from './Toolbar/ModelField'
-
-let mediaRecorder: MediaRecorder | null = null
-let audioChunks: BlobPart[] = []
+import { MicButton } from './Toolbar/MicButton'
+import { nanoid } from 'nanoid'
 
 export const Toolbar: FC = () => {
-  const router = useRouter()
-
   const setCode = useCodelessStore((state) => state.setCode)
 
   const setDialogType = useCodelessStore((state) => state.setDialogType)
 
-  const setHtml = useCodelessStore((state) => state.setHtml)
+  const codeHistory = useCodelessStore((state) => state.history)
+  const setHistory = useCodelessStore((state) => state.setHistory)
 
   const id = useCodelessStore((state) => state.id)
   const setId = useCodelessStore((state) => state.setId)
@@ -50,20 +46,22 @@ export const Toolbar: FC = () => {
   const text = useCodelessStore((state) => state.text)
   const setText = useCodelessStore((state) => state.setText)
 
+  const versions = useCodelessStore((state) => state.versions)
+  const setVersions = useCodelessStore((state) => state.setVersions)
+
   const {
     data,
     handleSubmit,
+    input,
     isLoading: chatIsLoading,
     messages,
+    setMessages,
     setInput,
   } = useChat({
     api: mode === 'demo' ? '/api/chat/edge' : '/api/chat',
   })
 
   const formRef = useRef<HTMLFormElement>(null)
-
-  const [isRecording, setIsRecording] = useState(false)
-  const [audioURL, setAudioURL] = useState('')
 
   const handleSubmitForm = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -120,7 +118,7 @@ export const Toolbar: FC = () => {
     }
     setId(codeData.id)
 
-    router.replace(codeData.id)
+    history.pushState({}, '', codeData.id)
 
     const newMessages = messages.slice()
     newMessages.push({
@@ -143,47 +141,6 @@ export const Toolbar: FC = () => {
     setText('')
   }
 
-  const startRecording = async () => {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-    mediaRecorder = new MediaRecorder(stream)
-    audioChunks = []
-
-    mediaRecorder.ondataavailable = (event: BlobEvent) => {
-      audioChunks.push(event.data)
-    }
-
-    mediaRecorder.onstop = () => {
-      const audioBlob = new Blob(audioChunks, { type: 'audio/wav' })
-      const url = URL.createObjectURL(audioBlob)
-      setAudioURL(url)
-
-      uploadAudio(audioBlob)
-    }
-
-    mediaRecorder.start()
-    setIsRecording(true)
-  }
-
-  const stopRecording = () => {
-    if (mediaRecorder) {
-      mediaRecorder.stop()
-    }
-    setIsRecording(false)
-  }
-
-  const uploadAudio = async (audioBlob: Blob) => {
-    const formData = new FormData()
-    formData.append('audio', audioBlob, 'myRecording.wav')
-
-    const response = await axios.post('/api/transcribe', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    })
-
-    setText(response.data.text)
-  }
-
   useEffect(() => {
     if (!chatIsLoading) {
       return
@@ -192,17 +149,20 @@ export const Toolbar: FC = () => {
     const message = messages.filter((m) => m.role === 'assistant').slice(-1)[0]
     const html = cleanHtml(message?.content)
 
-    setCode(html)
-    setHtml(html)
-  }, [chatIsLoading, messages, setCode, setHtml])
+    if (html) {
+      setCode(html)
+    }
+  }, [chatIsLoading, messages, setCode])
 
   useEffect(() => {
     if (data && data.length > 0) {
       const latestData = data[data.length - 1]
-      setNumberOfSteps(latestData.step)
-      setStep(latestData.step)
+      setHistory(latestData.history)
+      setNumberOfSteps(latestData.history.length)
+      setStep(latestData.currentStep)
+      setVersions(latestData.versions)
     }
-  }, [data, setNumberOfSteps, setStep])
+  }, [data, setHistory, setMessages, setNumberOfSteps, setStep, setVersions])
 
   useEffect(() => {
     setInput(text)
@@ -214,40 +174,18 @@ export const Toolbar: FC = () => {
     }
   }, [chatIsLoading, setIsLoading])
 
-  //   useEffect(() => {
-  //     if (audioURL && input) {
-  //       const mockEvent = {
-  //         preventDefault: () => {},
-  //         currentTarget: document.createElement('form'),
-  //       } as React.FormEvent<HTMLFormElement>
+  useEffect(() => {
+    if (!versions[codeHistory[step]]) {
+      return
+    }
 
-  //       const newMessages = messages.slice()
-  //       newMessages.push({
-  //         id: `${Math.random()}`,
-  //         role: 'user',
-  //         content: input,
-  //       })
-
-  //       handleSubmit(mockEvent, {
-  //         options: {
-  //           body: {
-  //             id,
-  //             messages: newMessages,
-  //             model,
-  //             step,
-  //           },
-  //         },
-  //       })
-
-  //       setText('')
-  //     }
-  //   }, [audioURL, handleSubmit, id, input, messages, model, step])
-
-  //   useEffect(() => {
-  //     if (chatIsLoading) {
-  //       setAudioURL('')
-  //     }
-  //   }, [chatIsLoading])
+    setMessages(
+      versions[codeHistory[step]].messages.map((message) => ({
+        ...message,
+        id: nanoid(),
+      }))
+    )
+  }, [codeHistory, setMessages, step, versions])
 
   return (
     <Stack alignItems="center" py={5}>
@@ -281,12 +219,12 @@ export const Toolbar: FC = () => {
           >
             <Stack alignItems="center" gap={1}>
               <TextField
+                autoComplete="off"
+                autoCorrect="off"
                 autoFocus
                 onChange={(e) => setText(e.target.value)}
                 placeholder={
-                  messages && messages.length > 0
-                    ? 'Tell me more...'
-                    : 'What do you want to build?'
+                  id ? 'Tell me more...' : 'What do you want to build?'
                 }
                 value={text}
                 variant="outlined"
@@ -317,20 +255,7 @@ export const Toolbar: FC = () => {
               />
             </Stack>
           </form>
-          {!text.length && !isLoading && !chatIsLoading && (
-            <IconButton
-              onClick={
-                isRecording ? () => stopRecording() : () => startRecording()
-              }
-              sx={{ position: 'absolute', right: 25, top: 9.5 }}
-            >
-              {isRecording ? (
-                <MicNone sx={{ color: 'white' }} />
-              ) : (
-                <Mic sx={{ color: 'white' }} />
-              )}
-            </IconButton>
-          )}
+          <MicButton />
         </Stack>
         {!!id && (
           <div>

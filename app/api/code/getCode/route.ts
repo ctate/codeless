@@ -14,9 +14,13 @@ export async function POST(req: NextRequest) {
     currentStep: number
     history: number[]
     latestStep: number
+    user: string
     versions: Array<{
       code: string
-      prompt: string
+      messages: Array<{
+        content: string
+        role: string
+      }>
     }>
   }>(id)
   if (!code) {
@@ -30,10 +34,10 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     id,
-    code: code.code,
     currentStep: code.currentStep,
     history: code.history,
     latestStep: code.latestStep,
+    user: code.user,
     versions: code.versions,
   })
 }

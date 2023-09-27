@@ -15,7 +15,7 @@ const openai = new OpenAI({
 })
 
 export async function POST(req: NextRequest) {
-  const { id, messages, step } = (await req.json()) as {
+  const { id, messages, step = 0 } = (await req.json()) as {
     id: string
     messages: Chat.ChatCompletionMessage[]
     step?: number
@@ -39,7 +39,10 @@ export async function POST(req: NextRequest) {
     latestStep: number
     versions: Array<{
       code: string
-      prompt: string
+      messages: Array<{
+        content: string
+        role: string
+      }>
     }>
   }>(id)
   if (!code) {
@@ -56,7 +59,7 @@ export async function POST(req: NextRequest) {
   } else {
     messages[messages.length - 1].content = `${
       messages[messages.length - 1].content
-    }. Do not provide an explaintation, only code.`
+    }. Do not provide an explaintation, only code. Return the full HTML.`
   }
 
   // TODO: fix
@@ -71,7 +74,6 @@ export async function POST(req: NextRequest) {
     messages: messages.map((message) => ({
       content: message.content,
       role: message.role,
-      function_call: message.function_call,
     })),
   })
 
@@ -83,24 +85,25 @@ export async function POST(req: NextRequest) {
       message += token
     },
     async onFinal() {
-      const nextStep = code.latestStep + 1
+      const newHistory = code.history.slice(0, step + 1);
 
-      await kv.hset(id, {
-        code: message,
-        currentStep: code.versions.length,
-        history: code.history.concat(code.versions.length),
-        latestStep: nextStep,
-        prompt: messages[messages.length - 1].content,
+      const newData = {
+        currentStep: newHistory.length,
+        history: newHistory.concat(code.versions.length),
+        latestStep: newHistory.length,
         user: userData.email || '',
         versions: code.versions.concat({
           code: message,
-          prompt: messages.slice(-1)[0].content!,
+          messages: messages.map((message) => ({
+            content: message.content!,
+            role: message.role,
+          })),
         }),
-      })
+      }
 
-      data.append({
-        step: nextStep,
-      })
+      await kv.hset(id, newData)
+
+      data.append(newData)
 
       data.close()
     },

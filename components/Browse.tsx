@@ -21,7 +21,7 @@ export const Browse: FC = () => {
   const setShowComponents = useCodelessStore((state) => state.setShowComponents)
 
   const setIsLoading = useCodelessStore((state) => state.setIsLoading)
-  const setHtml = useCodelessStore((state) => state.setHtml)
+  const setCode = useCodelessStore((state) => state.setCode)
   // const setMessages = useCodelessStore((state) => state.setMessages)
   const setStep = useCodelessStore((state) => state.setStep)
   const setNumberOfSteps = useCodelessStore((state) => state.setNumberOfSteps)
@@ -52,7 +52,7 @@ export const Browse: FC = () => {
     }
 
     const latestStep = data.steps.sort((a, b) => b.number - a.number)[0]
-    setHtml(latestStep.html)
+    setCode(latestStep.html)
     // setMessages(data.steps.flatMap((step) => step.messages))
     setStep(data.steps.length)
     setNumberOfSteps(data.steps.length)

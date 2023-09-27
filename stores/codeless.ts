@@ -1,10 +1,18 @@
 import axios from 'axios'
+import { ChatCompletionRole } from 'openai/resources/chat/index.mjs'
 import { StateCreator, create } from 'zustand'
 
 type AppState = CodelessState
 
 type Mode = '' | 'local' | 'demo'
 type Model = 'gpt-3.5-turbo' | 'gpt-4'
+type Version = {
+  code: string
+  messages: Array<{
+    content: string
+    role: ChatCompletionRole
+  }>
+}
 
 export interface CodelessState {
   code: string
@@ -16,8 +24,8 @@ export interface CodelessState {
   hasApiKey: boolean
   setHasApiKey: (hasApiKey: boolean) => void
 
-  html: string
-  setHtml: (html: string) => void
+  history: number[]
+  setHistory: (history: number[]) => void
 
   id: string
   setId: (id: string) => void
@@ -52,6 +60,9 @@ export interface CodelessState {
   text: string
   setText: (text: string) => void
 
+  versions: Version[]
+  setVersions: (versions: Version[]) => void
+
   init: () => Promise<void>
   load: (id: string) => Promise<void>
 
@@ -68,8 +79,8 @@ export const createCodelessSlice: StateCreator<CodelessState> = (set) => ({
   hasApiKey: false,
   setHasApiKey: (hasApiKey) => set(() => ({ hasApiKey })),
 
-  html: '',
-  setHtml: (html) => set(() => ({ html })),
+  history: [],
+  setHistory: (history) => set(() => ({ history })),
 
   id: '',
   setId: (id) => set(() => ({ id })),
@@ -103,6 +114,9 @@ export const createCodelessSlice: StateCreator<CodelessState> = (set) => ({
 
   text: '',
   setText: (text) => set(() => ({ text })),
+
+  versions: [],
+  setVersions: (versions) => set(() => ({ versions })),
 
   init: async () => {
     set({
@@ -161,16 +175,32 @@ export const createCodelessSlice: StateCreator<CodelessState> = (set) => ({
         id: `code/${id}`,
       },
     })
+    const codeData = codeRes.data as {
+      id: string
+      currentStep: number
+      history: number[]
+      latestStep: -1
+      user: string
+      versions: Array<{
+        code: string
+        messages: Array<{
+          content: string
+          role: ChatCompletionRole
+        }>
+      }>
+    }
 
     set({
-      code: codeRes.data.code,
+      code: codeData.versions[codeData.history[codeData.currentStep]].code,
       isInitialized: true,
       hasApiKey: hasApiKeyRes.data.hasApiKey,
-      html: codeRes.data.code,
-      id: codeRes.data.id,
+      history: codeData.history,
+      id: codeData.id,
       mode: modeRes.data.mode || 'local',
       model: settingsRes.data.value || 'gpt-3.5-turbo',
-      numberOfSteps: codeRes.data.latestStep,
+      numberOfSteps: codeData.history.length,
+      step: codeData.currentStep,
+      versions: codeData.versions,
     })
   },
 
