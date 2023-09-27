@@ -7,6 +7,7 @@ import { kv } from '@vercel/kv'
 import OpenAI from 'openai'
 import { Chat } from 'openai/resources/index'
 import { NextRequest, NextResponse } from 'next/server'
+import { ChatCompletionMessage } from 'openai/resources/chat/index.mjs'
 
 export const runtime = 'edge'
 
@@ -65,31 +66,34 @@ export async function POST(req: NextRequest) {
   }
 
   if (messages.length === 1) {
-    messages.unshift({
-      role: 'system',
-      content:
-        'You will be asked to write some HTML/CSS/JS in one file. Use tailwind. For any images, use images from pexels. Do not provide an explaintation, only code.',
-    })
-    messages[1].content = `Write HTML for: ${messages[1].content}.`
+    messages[0].content = `Write HTML for: ${messages[0].content}.`
   } else {
     messages[messages.length - 1].content = `${
       messages[messages.length - 1].content
-    }. Do not provide an explaintation, only code. Return the full HTML.`
+    }. Reuse the previous HTML in full. Do not provide an explaintation, only code. Do not use any markdown. Return the full HTML.`
   }
 
   // TODO: fix
   // reduce number of tokens by truncating old messages
-  if (messages.length > 10) {
-    messages.splice(0, messages.length - 10)
-  }
+  messages.slice(-6)
+
+  const systemMessages: ChatCompletionMessage[] = [
+    {
+      role: 'system',
+      content:
+        'You will be asked to write some HTML/CSS/JS in one file. Use tailwind. If the user prompt asks for any images, use images from pexels. Do not provide an explaintation, only code.',
+    },
+  ]
 
   const response = await openai.chat.completions.create({
     model: 'gpt-3.5-turbo',
     stream: true,
-    messages: messages.map((message) => ({
-      content: message.content,
-      role: message.role,
-    })),
+    messages: systemMessages.concat(
+      messages.map((message) => ({
+        content: message.content!,
+        role: message.role,
+      }))
+    ),
   })
 
   const data = new experimental_StreamData()
@@ -102,8 +106,6 @@ export async function POST(req: NextRequest) {
     async onFinal() {
       const newHistory = code.history.slice(0, step + 1)
 
-      console.log(userData)
-
       const newData = {
         currentStep: newHistory.length,
         history: newHistory.concat(code.versions.length),
@@ -111,10 +113,17 @@ export async function POST(req: NextRequest) {
         user: userData.user.email,
         versions: code.versions.concat({
           code: message,
-          messages: messages.map((message) => ({
-            content: message.content!,
-            role: message.role,
-          })),
+          messages: messages
+            .map((message) => ({
+              content: message.content!,
+              role: message.role,
+            }))
+            .concat([
+              {
+                content: message,
+                role: 'assistant',
+              },
+            ]),
         }),
       }
 
