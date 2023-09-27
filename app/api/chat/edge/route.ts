@@ -15,28 +15,22 @@ const openai = new OpenAI({
 })
 
 export async function POST(req: NextRequest) {
-  const { id, messages, step = 0 } = (await req.json()) as {
+  const {
+    id,
+    messages,
+    step = 0,
+  } = (await req.json()) as {
     id: string
     messages: Chat.ChatCompletionMessage[]
     step?: number
   }
 
-  // user not authenticated
-  const userRes = await fetch(`${process.env.NEXTAUTH_URL}/api/user/getUser`, {
-    method: 'POST',
-    headers: {
-      cookie: req.headers.get('cookie')!,
-    },
-  })
-  const userData = await userRes.json()
-  if (!userData.user || !userData.hasStarred) {
-    return NextResponse.json({}, { status: 401 })
-  }
-
   // component doesn't exist
   const code = await kv.hgetall<{
+    currentStep: number
     history: number[]
     latestStep: number
+    user: string
     versions: Array<{
       code: string
       messages: Array<{
@@ -47,6 +41,27 @@ export async function POST(req: NextRequest) {
   }>(id)
   if (!code) {
     return NextResponse.json({}, { status: 409 })
+  }
+
+  // user not authenticated
+  const userRes = await fetch(`${process.env.NEXTAUTH_URL}/api/user/getUser`, {
+    method: 'POST',
+    headers: {
+      cookie: req.headers.get('cookie')!,
+    },
+  })
+  const userData = (await userRes.json()) as {
+    hasStarred: boolean
+    user: {
+      name: string
+      email: string
+      image: string
+    }
+  }
+  if (!userData.user || !userData.hasStarred) {
+    return NextResponse.json({}, { status: 401 })
+  } else if (userData.user.email !== code.user) {
+    return NextResponse.json({}, { status: 403 })
   }
 
   if (messages.length === 1) {
@@ -85,13 +100,15 @@ export async function POST(req: NextRequest) {
       message += token
     },
     async onFinal() {
-      const newHistory = code.history.slice(0, step + 1);
+      const newHistory = code.history.slice(0, step + 1)
+
+      console.log(userData)
 
       const newData = {
         currentStep: newHistory.length,
         history: newHistory.concat(code.versions.length),
         latestStep: newHistory.length,
-        user: userData.email || '',
+        user: userData.user.email,
         versions: code.versions.concat({
           code: message,
           messages: messages.map((message) => ({

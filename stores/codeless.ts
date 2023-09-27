@@ -60,6 +60,9 @@ export interface CodelessState {
   text: string
   setText: (text: string) => void
 
+  user: string
+  setUser: (user: string) => void
+
   versions: Version[]
   setVersions: (versions: Version[]) => void
 
@@ -114,6 +117,9 @@ export const createCodelessSlice: StateCreator<CodelessState> = (set) => ({
 
   text: '',
   setText: (text) => set(() => ({ text })),
+
+  user: '',
+  setUser: (user) => set(() => ({ user })),
 
   versions: [],
   setVersions: (versions) => set(() => ({ versions })),

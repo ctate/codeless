@@ -19,9 +19,7 @@ export async function POST(req: NextRequest) {
   const { prompt } = (await req.json()) as Request
 
   const session = await getServerSession(authOptions)
-  const username = session?.user?.email?.toLowerCase()
-
-  if (!username) {
+  if (!session?.user?.email) {
     return NextResponse.json({}, { status: 401 })
   }
 
@@ -40,6 +38,11 @@ export async function POST(req: NextRequest) {
     ],
   })
 
+  await kv.hset(`users/${session.user.email}`, {
+    image: session?.user?.image,
+    name: session?.user?.name,
+  })
+
   const id = `code/${paramCase(
     `${response.choices[0].message.content}-${Date.now()}`
   )}`
@@ -48,7 +51,7 @@ export async function POST(req: NextRequest) {
     currentStep: -1,
     history: [],
     latestStep: -1,
-    user: username,
+    user: session.user.email,
     versions: [],
   })
 
