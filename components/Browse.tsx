@@ -34,7 +34,7 @@ export const Browse: FC = () => {
 
     await load(component)
 
-    history.pushState({}, '', component)
+    history.pushState({}, '', `/code/${component}`)
 
     setIsLoading(false)
   }
