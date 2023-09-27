@@ -51,11 +51,11 @@ export const Header: FC = () => {
         top={20}
       >
         <Stack alignItems="center" direction="row" gap={1}>
-          <Link href="/">
+          <a href="/">
             <Typography component="h1" variant="h6" textTransform="lowercase">
               Codeless
             </Typography>
-          </Link>
+          </a>
           {mode === 'demo' && (
             <Chip
               label="Beta"
