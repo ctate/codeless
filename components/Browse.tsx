@@ -23,13 +23,9 @@ export const Browse: FC = () => {
   const setIsLoading = useCodelessStore((state) => state.setIsLoading)
   const load = useCodelessStore((state) => state.load)
   // const setMessages = useCodelessStore((state) => state.setMessages)
-  const setStep = useCodelessStore((state) => state.setStep)
-  const setNumberOfSteps = useCodelessStore((state) => state.setNumberOfSteps)
-
-  const frameRefs = useRef<HTMLIFrameElement[]>([])
 
   const [components, setComponents] = useState<Component[]>([])
-  const [isInitialized, setIsInitialized] = useState(false)
+  const [isLoadingBrowse, setIsLoadingBrowse] = useState(false)
 
   const handleLoadComponent = async (component: string) => {
     setShowComponents(false)
@@ -44,6 +40,8 @@ export const Browse: FC = () => {
   }
 
   const init = async () => {
+    setIsLoadingBrowse(true)
+
     const res = await axios({
       method: 'POST',
       url: '/api/code/listCode',
@@ -56,7 +54,7 @@ export const Browse: FC = () => {
       }))
     )
 
-    setIsInitialized(true)
+    setIsLoadingBrowse(false)
   }
 
   useEffect(() => {
@@ -75,48 +73,55 @@ export const Browse: FC = () => {
         <Stack p={2}>
           <Container maxWidth="xl">
             <Typography component="h3" mb={4} variant="h4">
-              Browse All Components
+              Browse All
             </Typography>
-            <Grid
-              container
-              sx={{
-                border: '1px #CCC solid',
-              }}
-            >
-              {components.map((component, index) => (
-                <Grid
-                  item
-                  key={component.id}
-                  xs={4}
-                  sx={{
-                    overflow: 'hidden',
-                    border: '1px #CCC solid',
-                    position: 'relative',
-                    height: '300px',
-                  }}
-                >
-                  <img
-                    src={component.image}
-                    style={{ objectFit: 'cover' }}
-                    width="100%"
-                    height="100%"
-                  />
-                  <button
-                    onClick={() => handleLoadComponent(component.id)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      position: 'absolute',
-                      left: 0,
-                      right: 0,
-                      top: 0,
-                      bottom: 0,
+            {isLoadingBrowse && (
+              <Stack alignItems="center" p={5}>
+                <CircularProgress sx={{ color: 'black' }} />
+              </Stack>
+            )}
+            {!isLoadingBrowse && (
+              <Grid
+                container
+                sx={{
+                  border: '1px #CCC solid',
+                }}
+              >
+                {components.map((component, index) => (
+                  <Grid
+                    item
+                    key={component.id}
+                    xs={4}
+                    sx={{
+                      overflow: 'hidden',
+                      border: '1px #CCC solid',
+                      position: 'relative',
+                      height: '300px',
                     }}
-                  />
-                </Grid>
-              ))}
-            </Grid>
+                  >
+                    <img
+                      src={component.image}
+                      style={{ objectFit: 'cover' }}
+                      width="100%"
+                      height="100%"
+                    />
+                    <button
+                      onClick={() => handleLoadComponent(component.id)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        position: 'absolute',
+                        left: 0,
+                        right: 0,
+                        top: 0,
+                        bottom: 0,
+                      }}
+                    />
+                  </Grid>
+                ))}
+              </Grid>
+            )}
           </Container>
         </Stack>
       </Drawer>

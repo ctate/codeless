@@ -1,7 +1,8 @@
 import { useCodelessStore } from '@/stores/codeless'
 import { cleanHtml } from '@/utils/cleanHtml'
-import { KeyboardReturn } from '@mui/icons-material'
+import { AutoAwesome, KeyboardReturn } from '@mui/icons-material'
 import {
+  Button,
   CircularProgress,
   InputAdornment,
   Stack,
@@ -39,6 +40,8 @@ export const Toolbar: FC = () => {
   const model = useCodelessStore((state) => state.model)
 
   const setNumberOfSteps = useCodelessStore((state) => state.setNumberOfSteps)
+
+  const setShowComponents = useCodelessStore((state) => state.setShowComponents)
 
   const step = useCodelessStore((state) => state.step)
   const setStep = useCodelessStore((state) => state.setStep)
@@ -262,6 +265,19 @@ export const Toolbar: FC = () => {
             <CodeButton />
             <BrowseButton />
           </div>
+        )}
+        {!id && (
+          <Stack bottom={20} right={20} position="fixed">
+            <Button
+              sx={{ color: 'white' }}
+              onClick={() => setShowComponents(true)}
+            >
+              <Stack alignItems="center" direction="row" gap={1}>
+                Browse All
+                <AutoAwesome />
+              </Stack>
+            </Button>
+          </Stack>
         )}
       </Stack>
       <Stack alignItems="center" direction="row" gap={1}>
