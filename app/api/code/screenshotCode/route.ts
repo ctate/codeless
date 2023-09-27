@@ -48,7 +48,9 @@ export async function POST(req: NextRequest) {
   let browser: Browser
 
   try {
-    browser = await puppeteer.launch()
+    browser = await puppeteer.launch({
+      headless: true
+    })
     const page = await browser.newPage()
     await page.goto(dataUrl)
     const screenshot = await page.screenshot({ type: 'png' })
