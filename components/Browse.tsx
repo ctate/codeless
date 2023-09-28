@@ -22,9 +22,9 @@ export const Browse: FC = () => {
 
   const setIsLoading = useCodelessStore((state) => state.setIsLoading)
   const load = useCodelessStore((state) => state.load)
-  // const setMessages = useCodelessStore((state) => state.setMessages)
 
   const [components, setComponents] = useState<Component[]>([])
+  const [isInitialized, setIsInitialized] = useState(false)
   const [isLoadingBrowse, setIsLoadingBrowse] = useState(false)
 
   const handleLoadComponent = async (component: string) => {
@@ -54,14 +54,15 @@ export const Browse: FC = () => {
       }))
     )
 
+    setIsInitialized(true)
     setIsLoadingBrowse(false)
   }
 
   useEffect(() => {
-    if (showComponents) {
+    if (showComponents && !isInitialized) {
       init()
     }
-  }, [showComponents])
+  }, [isInitialized, showComponents])
 
   return (
     <>
