@@ -1,6 +1,6 @@
 import { useCodelessStore } from '@/stores/codeless'
 import { cleanHtml } from '@/utils/cleanHtml'
-import { AutoAwesome, KeyboardReturn } from '@mui/icons-material'
+import { AutoAwesome, AutoFixHigh, KeyboardReturn } from '@mui/icons-material'
 import {
   Button,
   CircularProgress,
@@ -21,8 +21,11 @@ import { ModelField } from './Toolbar/ModelField'
 import { MicButton } from './Toolbar/MicButton'
 import { nanoid } from 'nanoid'
 import { ReloadButton } from './Toolbar/ReloadButton'
+import { useSession } from 'next-auth/react'
 
 export const Toolbar: FC = () => {
+  const { data: session } = useSession()
+
   const setCode = useCodelessStore((state) => state.setCode)
 
   const setDialogType = useCodelessStore((state) => state.setDialogType)
@@ -66,6 +69,12 @@ export const Toolbar: FC = () => {
   })
 
   const formRef = useRef<HTMLFormElement>(null)
+
+  const handleFix = async () => {
+    await fetch(`/api/code/fixScreenshots`, {
+      method: 'POST',
+    })
+  }
 
   const handleSubmitForm = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -269,7 +278,15 @@ export const Toolbar: FC = () => {
           </div>
         )}
         {!id && (
-          <Stack bottom={20} right={20} position="fixed">
+          <Stack bottom={20} direction="row" right={20} position="fixed">
+            {session?.user?.email === process.env.NEXT_PUBLIC_ADMIN_USER && (
+              <Button sx={{ color: 'white' }} onClick={handleFix}>
+                <Stack alignItems="center" direction="row" gap={1}>
+                  Run Fix
+                  <AutoFixHigh />
+                </Stack>
+              </Button>
+            )}
             <Button
               sx={{ color: 'white' }}
               onClick={() => setShowComponents(true)}
