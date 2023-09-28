@@ -102,7 +102,7 @@ export const Browse: FC = () => {
                   >
                     <img
                       src={component.image}
-                      style={{ objectFit: 'cover' }}
+                      style={{ objectFit: 'cover', objectPosition: 'center top' }}
                       width="100%"
                       height="100%"
                     />
