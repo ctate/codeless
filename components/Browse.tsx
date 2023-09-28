@@ -82,43 +82,44 @@ export const Browse: FC = () => {
               </Stack>
             )}
             {!isLoadingBrowse && (
-              <Grid
-                container
-                sx={{
-                  border: '1px #CCC solid',
-                }}
-              >
+              <Grid container spacing={2}>
                 {components.map((component, index) => (
-                  <Grid
-                    item
-                    key={component.id}
-                    xs={4}
-                    sx={{
-                      overflow: 'hidden',
-                      border: '1px #CCC solid',
-                      position: 'relative',
-                      height: '300px',
-                    }}
-                  >
-                    <img
-                      src={component.image}
-                      style={{ objectFit: 'cover', objectPosition: 'center top' }}
-                      width="100%"
-                      height="100%"
-                    />
-                    <button
-                      onClick={() => handleLoadComponent(component.id)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        position: 'absolute',
-                        left: 0,
-                        right: 0,
-                        top: 0,
-                        bottom: 0,
+                  <Grid item key={component.id} lg={4} md={6} sm={12}>
+                    <Stack
+                      sx={{
+                        '&:hover': {
+                          border: '1px #CCC solid',
+                        },
+                        border: '1px #EEE solid',
+                        borderRadius: '5px',
+                        overflow: 'hidden',
+                        position: 'relative',
+                        height: '300px',
                       }}
-                    />
+                    >
+                      <img
+                        src={component.image}
+                        style={{
+                          objectFit: 'cover',
+                          objectPosition: 'center top',
+                        }}
+                        width="100%"
+                        height="100%"
+                      />
+                      <button
+                        onClick={() => handleLoadComponent(component.id)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          position: 'absolute',
+                          left: 0,
+                          right: 0,
+                          top: 0,
+                          bottom: 0,
+                        }}
+                      />
+                    </Stack>
                   </Grid>
                 ))}
               </Grid>
