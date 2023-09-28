@@ -14,6 +14,7 @@ import { Code } from './Code'
 import { UserDialog } from '@/dialogs/UserDialog'
 import { StarDialog } from '@/dialogs/StarDialog'
 import { Preview } from './Preview'
+import { Featured } from './Featured'
 
 export const Content: FC = () => {
   const hasApiKey = useCodelessStore((state) => state.hasApiKey)
@@ -57,12 +58,14 @@ export const Content: FC = () => {
       <Header />
       <Stack
         alignItems="center"
-        height="calc(100vh - 52px)"
+        minHeight={id ? undefined : 'calc(100vh - 52px)'}
+        height={id ? 'calc(100vh - 52px)' : undefined}
         marginTop={id ? '52px' : 0}
         justifyContent="center"
       >
         <Preview />
         <Toolbar />
+        <Featured />
       </Stack>
       <Code />
       <Browse />

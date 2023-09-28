@@ -1,6 +1,10 @@
 import { useCodelessStore } from '@/stores/codeless'
 import { cleanHtml } from '@/utils/cleanHtml'
-import { AutoAwesome, AutoFixHigh, KeyboardReturn } from '@mui/icons-material'
+import {
+  Apps as AppsIcon,
+  AutoFixHigh,
+  KeyboardReturn,
+} from '@mui/icons-material'
 import {
   Button,
   CircularProgress,
@@ -8,10 +12,11 @@ import {
   Stack,
   TextField,
   Typography,
+  useMediaQuery,
 } from '@mui/material'
 import { useChat } from 'ai/react'
 import axios from 'axios'
-import { FC, FormEvent, useEffect, useRef, useState } from 'react'
+import { FC, FormEvent, useEffect, useRef } from 'react'
 import { UndoButton } from './Toolbar/UndoButton'
 import { RedoButton } from './Toolbar/RedoButton'
 import { BrowseButton } from './Toolbar/BrowseButton'
@@ -22,8 +27,11 @@ import { MicButton } from './Toolbar/MicButton'
 import { nanoid } from 'nanoid'
 import { ReloadButton } from './Toolbar/ReloadButton'
 import { useSession } from 'next-auth/react'
+import { Tips } from './Toolbar/Tips'
 
 export const Toolbar: FC = () => {
+  const onlySmallScreen = useMediaQuery('(max-width:599px)')
+
   const { data: session } = useSession()
 
   const setCode = useCodelessStore((state) => state.setCode)
@@ -201,7 +209,12 @@ export const Toolbar: FC = () => {
   }, [codeHistory, setMessages, step, versions])
 
   return (
-    <Stack alignItems="center" py={5}>
+    <Stack
+      alignItems="center"
+      height={onlySmallScreen ? '80vh' : undefined}
+      justifyContent={onlySmallScreen ? 'center' : undefined}
+      py={5}
+    >
       {!id && (
         <Stack alignItems="center" direction="row" gap={1}>
           <Typography
@@ -287,21 +300,13 @@ export const Toolbar: FC = () => {
                 </Stack>
               </Button>
             )}
-            <Button
-              sx={{ color: 'white' }}
-              onClick={() => setShowComponents(true)}
-            >
-              <Stack alignItems="center" direction="row" gap={1}>
-                Browse All
-                <AutoAwesome />
-              </Stack>
-            </Button>
           </Stack>
         )}
       </Stack>
       <Stack alignItems="center" direction="row" gap={1}>
         <ProviderField />
         <ModelField />
+        <Tips />
       </Stack>
     </Stack>
   )

@@ -51,7 +51,7 @@ export const Header: FC = () => {
         top={20}
       >
         <Stack alignItems="center" direction="row" gap={1}>
-          <a href="/">
+          <a href="/" style={{ color: 'white' }}>
             <Typography component="h1" variant="h6" textTransform="lowercase">
               Codeless
             </Typography>
