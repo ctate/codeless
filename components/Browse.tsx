@@ -110,7 +110,7 @@ export const Browse: FC = () => {
                         : '1px solid transparent',
                   }}
                 >
-                  <Typography>Oldest</Typography>
+                  <Typography>Newest</Typography>
                 </button>
                 <button
                   onClick={() => setSortBy('oldest')}
@@ -126,7 +126,7 @@ export const Browse: FC = () => {
                         : '1px solid transparent',
                   }}
                 >
-                  <Typography>Newest</Typography>
+                  <Typography>Oldest</Typography>
                 </button>
                 <button
                   onClick={() => setSortBy('name')}
