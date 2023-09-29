@@ -3,6 +3,7 @@ import { cleanHtml } from '@/utils/cleanHtml'
 import {
   Apps as AppsIcon,
   AutoFixHigh,
+  Coffee,
   KeyboardReturn,
 } from '@mui/icons-material'
 import {
@@ -28,6 +29,7 @@ import { nanoid } from 'nanoid'
 import { ReloadButton } from './Toolbar/ReloadButton'
 import { useSession } from 'next-auth/react'
 import { Tips } from './Toolbar/Tips'
+import { ExternalLink } from './ExternalLink'
 
 export const Toolbar: FC = () => {
   const onlySmallScreen = useMediaQuery('(max-width:599px)')
@@ -216,14 +218,18 @@ export const Toolbar: FC = () => {
       py={5}
     >
       {!id && (
-        <Stack alignItems="center" direction="row" gap={1}>
-          <Typography
-            component="h1"
-            mb={2}
-            textTransform="lowercase"
-            variant="h1"
-          >
+        <Stack alignItems="center" gap={1}>
+          <Typography component="h1" textTransform="lowercase" variant="h1">
             Codeless
+          </Typography>
+          <Typography
+            mb={2}
+            textAlign="center"
+            textTransform="lowercase"
+            style={{ color: '#999' }}
+            variant="h6"
+          >
+            The free, open-source code generator powered by AI
           </Typography>
         </Stack>
       )}
@@ -303,10 +309,21 @@ export const Toolbar: FC = () => {
           </Stack>
         )}
       </Stack>
-      <Stack alignItems="center" direction="row" gap={1}>
-        <ProviderField />
-        <ModelField />
+      <Stack alignItems="center" direction="row" gap={2} mt={2}>
+        {/* <ProviderField />
+        <ModelField /> */}
         <Tips />
+        <ExternalLink href="https://www.buymeacoffee.com/ctate">
+          <Stack
+            alignItems="center"
+            direction="row"
+            gap={1}
+            style={{ color: 'white' }}
+          >
+            <Coffee />
+            <Typography variant="body2">Buy Me a Coffee</Typography>
+          </Stack>
+        </ExternalLink>
       </Stack>
     </Stack>
   )

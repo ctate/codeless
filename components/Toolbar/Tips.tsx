@@ -3,6 +3,7 @@
 import { Button, Container, Drawer, Stack, Typography } from '@mui/material'
 import { FC, useState } from 'react'
 import { ExternalLink } from '../ExternalLink'
+import { Lightbulb } from '@mui/icons-material'
 
 export const Tips: FC = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -20,7 +21,10 @@ export const Tips: FC = () => {
           border: 'none',
         }}
       >
-        <Typography variant="body2">Want some tips?</Typography>
+        <Stack alignItems="center" direction="row" gap={1}>
+          <Lightbulb />
+          <Typography variant="body2">Tips &amp; Tricks</Typography>
+        </Stack>
       </button>
       <Drawer anchor="bottom" open={isOpen} onClose={() => setIsOpen(false)}>
         <Container maxWidth="md">
