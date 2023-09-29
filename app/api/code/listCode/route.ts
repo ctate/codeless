@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
         const u = users.find((u) => u.username === user)!
         return {
           id,
-          title: capitalCase(id.split('-').slice(0, -1).join(' ')),
+          title: capitalCase(id.split('-').slice(1, -1).join(' ')),
           createdAt: Number(id.split('-').slice(-1)[0]),
           image: image || '',
           avatar: u?.avatar || '',
