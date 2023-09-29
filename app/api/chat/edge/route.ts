@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
   } else {
     messages[messages.length - 1].content = `${
       messages[messages.length - 1].content
-    }. Update the HTML from the previous response to handle this request. Do not provide an explaintation, only code. Do not use any markdown. Return the full HTML.`
+    }. Update the HTML from the previous response to handle this request. Make it fully functional with JavaScript. Do not use the "alert" function. Do not provide an explaintation, only code. Do not use any markdown. Return the full HTML.`
   }
 
   const systemMessages: ChatCompletionMessage[] = [
