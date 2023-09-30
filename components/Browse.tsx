@@ -198,8 +198,8 @@ export const Browse: FC = () => {
                           width="100%"
                           height="100%"
                         />
-                        <button
-                          onClick={() => handleLoadComponent(component.id)}
+                        <a
+                          href={`/code/${component.id}`}
                           style={{
                             background: 'none',
                             border: 'none',

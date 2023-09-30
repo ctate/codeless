@@ -83,8 +83,8 @@ export const Featured: FC = () => {
                     width="100%"
                     height="100%"
                   />
-                  <button
-                    onClick={() => handleLoadComponent(featured.id)}
+                  <a
+                    href={`/code/${featured.id}`}
                     style={{
                       background: 'none',
                       border: 'none',
