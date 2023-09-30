@@ -27,12 +27,36 @@ export async function POST(req: NextRequest) {
     step?: number
   }
 
-  const messages = previousMessages.filter((message) => message.role === 'user').slice(-4)
+  const messages: ChatCompletionMessage[] = [
+    {
+      role: 'system',
+      content:
+        'You will be asked to write some HTML/CSS/JS in one file. Use Tailwind via https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css. If any functionality is required, use JavaScript. If any images are required, use images from Pexels. Do not provide an explanation, only code.',
+    },
+  ]
+
+  const userMessages = previousMessages
+    .filter((message) => message.role === 'user')
+    .slice(-10)
+
+  if (userMessages.length === 1) {
+    messages.push(userMessages[0])
+  } else {
+    messages.push(
+      ...userMessages,
+      {
+        role: 'system',
+        content:
+          'Use the HTML from the assistant\'s latest response and make changes to it to fulfill the user\'s latest prompt. Do not use the "alert" function. Do not provide an explanation, only code. Do not use any markdown. Return the full HTML.',
+      }
+    )
+  }
+
   const lastAssitanceMessage = previousMessages.findLast(
     (message) => message.role === 'assistant'
   )
   if (lastAssitanceMessage) {
-    messages.splice(messages.length - 1, 0, lastAssitanceMessage)
+    messages.splice(messages.length - 2, 0, lastAssitanceMessage)
   }
 
   // component doesn't exist
@@ -78,31 +102,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({}, { status: 403 })
   }
 
-  if (messages.length === 1) {
-    messages[0].content = `Write HTML for: ${messages[0].content}.`
-  } else {
-    messages[messages.length - 1].content = `${
-      messages[messages.length - 1].content
-    }. Update the HTML from the previous response to handle this request. Make it fully functional with JavaScript. Do not use the "alert" function. Do not provide an explaintation, only code. Do not use any markdown. Return the full HTML.`
-  }
-
-  const systemMessages: ChatCompletionMessage[] = [
-    {
-      role: 'system',
-      content:
-        'You will be asked to write some HTML/CSS/JS in one file. Use Tailwind via https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css. If the user prompt asks for any images, use images from pexels. Do not provide an explaintation, only code.',
-    },
-  ]
-
   const response = await openai.chat.completions.create({
     model: 'gpt-3.5-turbo-16k',
     stream: true,
-    messages: systemMessages.concat(
-      messages.map((message) => ({
-        content: message.content!,
-        role: message.role,
-      }))
-    ),
+    messages: messages.map((message) => ({
+      content: message.content,
+      role: message.role,
+    })),
   })
 
   const data = new experimental_StreamData()
@@ -123,6 +129,7 @@ export async function POST(req: NextRequest) {
         versions: code.versions.concat({
           code: cleanHtml(message),
           messages: messages
+            .filter((message) => message.role === 'user')
             .map((message) => ({
               content: message.content!,
               role: message.role,
