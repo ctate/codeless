@@ -124,6 +124,13 @@ export const Featured: FC = () => {
                     right: 0,
                     top: 0,
                     bottom: 0,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    textAlign: 'center',
+                    width: '100%',
+                    height: '100%',
                   }}
                 >
                   <Stack alignItems="center" justifyContent="center" gap={0.5}>
