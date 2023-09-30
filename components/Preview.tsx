@@ -38,7 +38,12 @@ export const Preview: FC = () => {
         <iframe
           frameBorder={0}
           ref={iframeRef}
-          style={{ backgroundColor: 'white', height: '100%' }}
+          style={{
+            backgroundColor: 'white',
+            borderRadius: '10px',
+            height: '100%',
+            overflow: 'hidden',
+          }}
         />
       </Stack>
     </Stack>

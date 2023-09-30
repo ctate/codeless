@@ -296,18 +296,6 @@ export const Toolbar: FC = () => {
             <BrowseButton />
           </div>
         )}
-        {!id && (
-          <Stack bottom={20} direction="row" right={20} position="fixed">
-            {session?.user?.email === process.env.NEXT_PUBLIC_ADMIN_USER && (
-              <Button sx={{ color: 'white' }} onClick={handleFix}>
-                <Stack alignItems="center" direction="row" gap={1}>
-                  Run Fix
-                  <AutoFixHigh />
-                </Stack>
-              </Button>
-            )}
-          </Stack>
-        )}
       </Stack>
       <Stack alignItems="center" direction="row" gap={2} mt={2}>
         {/* <ProviderField />
@@ -324,6 +312,14 @@ export const Toolbar: FC = () => {
             <Typography variant="body2">Buy Me a Coffee</Typography>
           </Stack>
         </ExternalLink>
+        {session?.user?.email === process.env.NEXT_PUBLIC_ADMIN_USER && (
+          <Button sx={{ color: 'white' }} onClick={handleFix}>
+            <Stack alignItems="center" direction="row" gap={1}>
+              <AutoFixHigh />
+              Run Fix
+            </Stack>
+          </Button>
+        )}
       </Stack>
     </Stack>
   )

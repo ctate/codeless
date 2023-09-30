@@ -9,6 +9,8 @@ import { useCodelessStore } from '@/stores/codeless'
 export const Code: FC = () => {
   const code = useCodelessStore((state) => state.code)
 
+  const isLoading = useCodelessStore((state) => state.isLoading)
+
   const showCode = useCodelessStore((state) => state.showCode)
   const setShowCode = useCodelessStore((state) => state.setShowCode)
 
@@ -20,9 +22,13 @@ export const Code: FC = () => {
         onClose={() => setShowCode(false)}
       >
         <Stack sx={{ backgroundColor: 'rgb(40, 44, 52)', color: 'white' }}>
-          <SyntaxHighlighter language="jsx" style={docco}>
-            {code}
-          </SyntaxHighlighter>
+          {isLoading ? (
+            <pre>{code}</pre>
+          ) : (
+            <SyntaxHighlighter language="jsx" style={docco}>
+              {code}
+            </SyntaxHighlighter>
+          )}
         </Stack>
       </Drawer>
       {showCode && (

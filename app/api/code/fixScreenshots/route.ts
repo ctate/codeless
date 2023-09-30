@@ -58,6 +58,7 @@ export async function POST(req: NextRequest) {
       })
       const page = await browser.newPage()
       await page.goto(dataUrl)
+      await new Promise((res) => setTimeout(res, 2000));
       const screenshot = await page.screenshot({ type: 'png' })
 
       const { url } = await put(id, screenshot, { access: 'public' })
