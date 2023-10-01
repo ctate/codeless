@@ -5,15 +5,18 @@ import {
   Container,
   Drawer,
   Grid,
+  IconButton,
   MenuItem,
   Select,
   Stack,
   Typography,
+  useMediaQuery,
 } from '@mui/material'
 import { Message } from 'ai'
 import axios from 'axios'
 import { FC, useEffect, useRef, useState } from 'react'
 import { ExternalLink } from './ExternalLink'
+import { Close } from '@mui/icons-material'
 
 interface Component {
   id: string
@@ -25,6 +28,8 @@ interface Component {
 }
 
 export const Browse: FC = () => {
+  const onlySmallScreen = useMediaQuery('(max-width:599px)')
+
   const showComponents = useCodelessStore((state) => state.showComponents)
   const setShowComponents = useCodelessStore((state) => state.setShowComponents)
 
@@ -88,13 +93,22 @@ export const Browse: FC = () => {
           <Container maxWidth="xl">
             <Stack
               alignItems="center"
-              direction="row"
+              direction={onlySmallScreen ? 'column' : 'row'}
               justifyContent="space-between"
             >
-              <Typography component="h3" mb={4} variant="h4">
+              <Typography
+                component="h3"
+                mb={onlySmallScreen ? 0 : 4}
+                variant="h4"
+              >
                 Browse
               </Typography>
-              <Stack alignItems="center" direction="row" gap={2}>
+              <Stack
+                alignItems="center"
+                direction="row"
+                gap={2}
+                mb={onlySmallScreen ? 4 : 0}
+              >
                 <Typography>Sort by:</Typography>
                 <button
                   onClick={() => setSortBy('newest')}
@@ -219,6 +233,21 @@ export const Browse: FC = () => {
           </Container>
         </Stack>
       </Drawer>
+      {showComponents && (
+        <>
+          <Stack
+            direction="row"
+            position="fixed"
+            right={10}
+            top={10}
+            zIndex={100000000}
+          >
+            <IconButton onClick={() => setShowComponents(false)}>
+              <Close style={{ color: 'black' }} />
+            </IconButton>
+          </Stack>
+        </>
+      )}
     </>
   )
 }

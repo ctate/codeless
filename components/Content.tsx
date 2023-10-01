@@ -58,9 +58,9 @@ export const Content: FC = () => {
       <Header />
       <Stack
         alignItems="center"
-        minHeight={id ? undefined : 'calc(100vh - 52px)'}
-        height={id ? 'calc(100vh - 52px)' : undefined}
-        marginTop={id ? '52px' : 0}
+        minHeight={id ? undefined : 'calc(100vh - 72px)'}
+        height={id ? 'calc(100vh - 92px)' : undefined}
+        marginTop="20px"
         justifyContent="center"
       >
         <Preview />

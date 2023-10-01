@@ -54,7 +54,11 @@ export const Featured: FC = () => {
     return null
   }
   return (
-    <Stack position={onlySmallScreen ? 'static' : 'fixed'} bottom={20}>
+    <Stack
+      position={onlySmallScreen ? 'static' : 'fixed'}
+      bottom={20}
+      paddingBottom={onlySmallScreen ? '20px' : 0}
+    >
       <Container maxWidth="md">
         <Stack mt={2}>
           <Typography gutterBottom variant="h5">

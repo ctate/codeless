@@ -1,6 +1,7 @@
 import { useCodelessStore } from '@/stores/codeless'
 import { cleanHtml } from '@/utils/cleanHtml'
 import {
+  AdsClick,
   Apps as AppsIcon,
   AutoFixHigh,
   Coffee,
@@ -9,9 +10,11 @@ import {
 import {
   Button,
   CircularProgress,
+  IconButton,
   InputAdornment,
   Stack,
   TextField,
+  Tooltip,
   Typography,
   useMediaQuery,
 } from '@mui/material'
@@ -30,6 +33,7 @@ import { ReloadButton } from './Toolbar/ReloadButton'
 import { useSession } from 'next-auth/react'
 import { Tips } from './Toolbar/Tips'
 import { ExternalLink } from './ExternalLink'
+import { SnippetButton } from './Toolbar/SnippetButton'
 
 export const Toolbar: FC = () => {
   const onlySmallScreen = useMediaQuery('(max-width:599px)')
@@ -49,6 +53,9 @@ export const Toolbar: FC = () => {
   const isLoading = useCodelessStore((state) => state.isLoading)
   const setIsLoading = useCodelessStore((state) => state.setIsLoading)
 
+  const isSaving = useCodelessStore((state) => state.isSaving)
+  const setIsSaving = useCodelessStore((state) => state.setIsSaving)
+
   const mode = useCodelessStore((state) => state.mode)
 
   const model = useCodelessStore((state) => state.model)
@@ -56,6 +63,15 @@ export const Toolbar: FC = () => {
   const setNumberOfSteps = useCodelessStore((state) => state.setNumberOfSteps)
 
   const setShowComponents = useCodelessStore((state) => state.setShowComponents)
+
+  const snippet = useCodelessStore((state) => state.snippet)
+
+  const snippetIsEnabled = useCodelessStore((state) => state.snippetIsEnabled)
+  const setSnippetIsEnabled = useCodelessStore(
+    (state) => state.setSnippetIsEnabled
+  )
+
+  const setSnippetOutput = useCodelessStore((state) => state.setSnippetOutput)
 
   const step = useCodelessStore((state) => state.step)
   const setStep = useCodelessStore((state) => state.setStep)
@@ -88,6 +104,30 @@ export const Toolbar: FC = () => {
 
   const handleSubmitForm = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+
+    if (snippetIsEnabled) {
+      setIsSaving(true)
+      setSnippetIsEnabled(false)
+      setText('')
+
+      try {
+        const res = await axios({
+          method: 'POST',
+          url: '/api/code/changeSnippet',
+          data: {
+            code: snippet,
+            prompt: text,
+          },
+        })
+
+        setSnippetOutput(res.data.code)
+      } catch {
+      } finally {
+        setIsLoading(false)
+      }
+
+      return
+    }
 
     setIsLoading(true)
 
@@ -213,9 +253,9 @@ export const Toolbar: FC = () => {
   return (
     <Stack
       alignItems="center"
-      height={onlySmallScreen ? '80vh' : undefined}
+      height={!id && onlySmallScreen ? '80vh' : undefined}
       justifyContent={onlySmallScreen ? 'center' : undefined}
-      py={5}
+      pb={!id ? 20 : 0}
     >
       {!id && (
         <Stack alignItems="center" gap={1}>
@@ -234,7 +274,7 @@ export const Toolbar: FC = () => {
         </Stack>
       )}
       <Stack alignItems="center" direction="row" gap={2}>
-        {!!id && (
+        {!!id && !onlySmallScreen && (
           <div>
             <UndoButton />
             <RedoButton />
@@ -255,16 +295,20 @@ export const Toolbar: FC = () => {
                 autoComplete="off"
                 autoCorrect="off"
                 autoFocus
+                disabled={snippetIsEnabled && !snippet}
                 onChange={(e) => setText(e.target.value)}
                 placeholder={
                   id ? 'Tell me more...' : 'What do you want to build?'
                 }
-                value={text}
+                required
+                value={
+                  snippetIsEnabled && !snippet ? 'Select an element' : text
+                }
                 variant="outlined"
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
-                      {isLoading || chatIsLoading ? (
+                      {isLoading || isSaving || chatIsLoading ? (
                         <CircularProgress
                           size={24}
                           sx={{ color: 'white', marginRight: '10px' }}
@@ -277,7 +321,7 @@ export const Toolbar: FC = () => {
                     </InputAdornment>
                   ),
                   style: {
-                    background: '#333',
+                    background: snippetIsEnabled && !snippet ? '#000' : '#333',
                     color: '#FFF',
                     borderRadius: '50px',
                     padding: '0 20px',
@@ -290,8 +334,9 @@ export const Toolbar: FC = () => {
           </form>
           <MicButton />
         </Stack>
-        {!!id && (
+        {!!id && !onlySmallScreen && (
           <div>
+            <SnippetButton />
             <CodeButton />
             <BrowseButton />
           </div>

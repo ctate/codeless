@@ -9,6 +9,8 @@ export const ReloadButton: FC = () => {
 
   const isLoading = useCodelessStore((state) => state.isLoading)
 
+  const isSaving = useCodelessStore((state) => state.isSaving)
+
   const numberOfSteps = useCodelessStore((state) => state.numberOfSteps)
 
   const [isDisabled, setIsDisabled] = useState(false)
@@ -20,8 +22,8 @@ export const ReloadButton: FC = () => {
   }
 
   useEffect(() => {
-    setIsDisabled(isLoading || numberOfSteps < 1)
-  }, [isLoading, numberOfSteps])
+    setIsDisabled(isLoading || isSaving || numberOfSteps < 1)
+  }, [isLoading, isSaving, numberOfSteps])
 
   return (
     <Tooltip title="Reload">

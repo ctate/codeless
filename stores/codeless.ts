@@ -36,6 +36,9 @@ export interface CodelessState {
   isLoading: boolean
   setIsLoading: (isLoading: boolean) => void
 
+  isSaving: boolean
+  setIsSaving: (isSaving: boolean) => void
+
   mode: Mode
   setMode: (mode: Mode) => void
 
@@ -53,6 +56,15 @@ export interface CodelessState {
 
   showComponents: boolean
   setShowComponents: (showComponents: boolean) => void
+
+  snippet: string
+  setSnippet: (snippet: string) => void
+
+  snippetOutput: string
+  setSnippetOutput: (snippetOutput: string) => void
+
+  snippetIsEnabled: boolean
+  setSnippetIsEnabled: (snippetIsEnabled: boolean) => void
 
   step: number
   setStep: (step: number) => void
@@ -94,6 +106,9 @@ export const createCodelessSlice: StateCreator<CodelessState> = (set) => ({
   isLoading: false,
   setIsLoading: (isLoading) => set(() => ({ isLoading })),
 
+  isSaving: false,
+  setIsSaving: (isSaving) => set(() => ({ isSaving })),
+
   mode: '',
   setMode: (mode) => set(() => ({ mode })),
 
@@ -111,6 +126,15 @@ export const createCodelessSlice: StateCreator<CodelessState> = (set) => ({
 
   showComponents: false,
   setShowComponents: (showComponents) => set(() => ({ showComponents })),
+
+  snippet: '',
+  setSnippet: (snippet) => set(() => ({ snippet })),
+
+  snippetOutput: '',
+  setSnippetOutput: (snippetOutput) => set(() => ({ snippetOutput })),
+
+  snippetIsEnabled: false,
+  setSnippetIsEnabled: (snippetIsEnabled) => set(() => ({ snippetIsEnabled })),
 
   step: 0,
   setStep: (step) => set(() => ({ step })),

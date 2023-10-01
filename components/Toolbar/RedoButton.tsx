@@ -13,6 +13,8 @@ export const RedoButton: FC = () => {
 
   const isLoading = useCodelessStore((state) => state.isLoading)
 
+  const isSaving = useCodelessStore((state) => state.isSaving)
+
   const numberOfSteps = useCodelessStore((state) => state.numberOfSteps)
 
   const step = useCodelessStore((state) => state.step)
@@ -34,8 +36,8 @@ export const RedoButton: FC = () => {
   }
 
   useEffect(() => {
-    setIsDiabled(isLoading || numberOfSteps === 0 || numberOfSteps - 1 <= step)
-  }, [isLoading, numberOfSteps, step])
+    setIsDiabled(isLoading || isSaving || numberOfSteps === 0 || numberOfSteps - 1 <= step)
+  }, [isLoading, isSaving, numberOfSteps, step])
 
   return (
     <Tooltip title="Redo">

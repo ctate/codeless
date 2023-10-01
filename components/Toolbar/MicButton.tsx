@@ -10,6 +10,8 @@ let audioChunks: BlobPart[] = []
 export const MicButton: FC = () => {
   const isLoading = useCodelessStore((state) => state.isLoading)
 
+  const isSaving = useCodelessStore((state) => state.isSaving)
+
   const text = useCodelessStore((state) => state.text)
   const setText = useCodelessStore((state) => state.setText)
 
@@ -94,7 +96,7 @@ export const MicButton: FC = () => {
 
   return (
     <>
-      {!text.length && !isLoading && (
+      {!text.length && !isLoading && !isSaving && (
         <IconButton
           onClick={isRecording ? () => stopRecording() : () => startRecording()}
           sx={{ position: 'absolute', right: 25, top: 9.5 }}

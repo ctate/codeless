@@ -11,10 +11,6 @@ interface Request {
   dataUrl: string
 }
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || '',
-})
-
 export async function POST(req: NextRequest) {
   const { id, dataUrl } = (await req.json()) as Request
 

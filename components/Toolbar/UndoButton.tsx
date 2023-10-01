@@ -13,6 +13,8 @@ export const UndoButton: FC = () => {
 
   const isLoading = useCodelessStore((state) => state.isLoading)
 
+  const isSaving = useCodelessStore((state) => state.isSaving)
+
   const numberOfSteps = useCodelessStore((state) => state.numberOfSteps)
 
   const step = useCodelessStore((state) => state.step)
@@ -34,8 +36,8 @@ export const UndoButton: FC = () => {
   }
 
   useEffect(() => {
-    setIsDiabled(isLoading || numberOfSteps === 0 || step < 1)
-  }, [isLoading, numberOfSteps, step])
+    setIsDiabled(isLoading || isSaving || numberOfSteps === 0 || step < 1)
+  }, [isLoading, isSaving, numberOfSteps, step])
 
   return (
     <Tooltip title="Undo">

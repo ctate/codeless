@@ -8,6 +8,7 @@ import {
   MenuItem,
   Stack,
   Typography,
+  useMediaQuery,
 } from '@mui/material'
 import { signIn, signOut, useSession } from 'next-auth/react'
 import { FC, useState } from 'react'
@@ -17,6 +18,8 @@ import { GitHubIcon } from '@/icons/GitHubIcon'
 import Link from 'next/link'
 
 export const Header: FC = () => {
+  const onlySmallScreen = useMediaQuery('(max-width:599px)')
+
   const { data: session } = useSession()
 
   const id = useCodelessStore((state) => state.id)
@@ -44,11 +47,8 @@ export const Header: FC = () => {
       <Stack
         alignItems="center"
         direction="row"
-        position="fixed"
         justifyContent="space-between"
-        left={20}
-        right={20}
-        top={20}
+        padding="20px 20px 0 20px"
       >
         <Stack alignItems="center" direction="row" gap={1}>
           <a href="/" style={{ color: 'white' }}>
@@ -73,13 +73,15 @@ export const Header: FC = () => {
                 <Button
                   disableRipple
                   onClick={handleClick}
-                  sx={{ color: 'white', p: 0, border: 'none', mt: -0.5 }}
+                  sx={{ color: 'white', p: 0, border: 'none', mt: -0.5, minWidth: 0 }}
                 >
-                  <Stack alignItems="center" direction="row" gap={2}>
+                  <Stack alignItems="center" direction="row" gap={1}>
                     <img height={24} src={session.user.image!} />
-                    <Typography textTransform="none">
-                      {session.user?.email}
-                    </Typography>
+                    {!onlySmallScreen && (
+                      <Typography textTransform="none">
+                        {session.user?.email}
+                      </Typography>
+                    )}
                   </Stack>
                 </Button>
               ) : (
@@ -99,17 +101,19 @@ export const Header: FC = () => {
           <ExternalLink href="https://github.com/ctate/codeless">
             <GitHubIcon size={20} />
           </ExternalLink>
-          <Box>
-            <GitHubButton
-              href="https://github.com/ctate/codeless"
-              data-color-scheme="no-preference: dark; light: dark; dark: dark;"
-              data-icon="octicon-star"
-              data-show-count="true"
-              aria-label="Star ctate/codeless on GitHub"
-            >
-              Star
-            </GitHubButton>
-          </Box>
+          {!onlySmallScreen && (
+            <Box>
+              <GitHubButton
+                href="https://github.com/ctate/codeless"
+                data-color-scheme="no-preference: dark; light: dark; dark: dark;"
+                data-icon="octicon-star"
+                data-show-count="true"
+                aria-label="Star ctate/codeless on GitHub"
+              >
+                Star
+              </GitHubButton>
+            </Box>
+          )}
         </Stack>
       </Stack>
       <Menu

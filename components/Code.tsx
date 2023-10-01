@@ -1,18 +1,35 @@
-import { Code as CodeIcon } from '@mui/icons-material'
+import { Code as CodeIcon, Save } from '@mui/icons-material'
 import { Drawer, IconButton, Stack } from '@mui/material'
-import { FC } from 'react'
-import SyntaxHighlighter from 'react-syntax-highlighter'
-import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs'
+import { FC, useState } from 'react'
+import Editor, { DiffEditor, useMonaco, loader } from '@monaco-editor/react'
 
 import { useCodelessStore } from '@/stores/codeless'
+import axios from 'axios'
 
 export const Code: FC = () => {
   const code = useCodelessStore((state) => state.code)
 
+  const id = useCodelessStore((state) => state.id)
+
   const isLoading = useCodelessStore((state) => state.isLoading)
+
+  const isSaving = useCodelessStore((state) => state.isSaving)
 
   const showCode = useCodelessStore((state) => state.showCode)
   const setShowCode = useCodelessStore((state) => state.setShowCode)
+
+  const [manualCode, setManualCode] = useState(code)
+
+  const handleCodeUpdate = async () => {
+    await axios({
+      method: 'POST',
+      url: '/api/code/updateCode',
+      data: {
+        id,
+        code: manualCode,
+      },
+    })
+  }
 
   return (
     <>
@@ -25,18 +42,32 @@ export const Code: FC = () => {
           {isLoading ? (
             <pre>{code}</pre>
           ) : (
-            <SyntaxHighlighter language="jsx" style={docco}>
-              {code}
-            </SyntaxHighlighter>
+            <Editor
+              height="90vh"
+              defaultLanguage="html"
+              defaultValue={manualCode}
+              onChange={(value) => setManualCode(value || '')}
+            />
           )}
         </Stack>
       </Drawer>
       {showCode && (
-        <Stack position="fixed" right={10} top={10} zIndex={100000000}>
-          <IconButton onClick={() => setShowCode(!showCode)}>
-            <CodeIcon />
-          </IconButton>
-        </Stack>
+        <>
+          <Stack
+            direction="row"
+            position="fixed"
+            right={10}
+            top={10}
+            zIndex={100000000}
+          >
+            <IconButton disabled={isSaving} onClick={() => handleCodeUpdate()}>
+              <Save style={{ color: isSaving ? 'gray' : 'white' }} />
+            </IconButton>
+            <IconButton onClick={() => setShowCode(!showCode)}>
+              <CodeIcon style={{ color: 'white' }} />
+            </IconButton>
+          </Stack>
+        </>
       )}
     </>
   )
