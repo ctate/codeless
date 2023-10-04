@@ -48,6 +48,9 @@ export interface CodelessState {
   model: Model
   setModel: (model: Model) => void
 
+  name: string
+  setName: (name: string) => void
+
   provider: 'openai'
   setProvider: (provider: 'openai') => void
 
@@ -120,6 +123,9 @@ export const createCodelessSlice: StateCreator<CodelessState> = (set) => ({
 
   model: 'gpt-3.5-turbo',
   setModel: (model) => set(() => ({ model })),
+
+  name: '',
+  setName: (name) => set(() => ({ name })),
 
   numberOfSteps: 0,
   setNumberOfSteps: (numberOfSteps) => set(() => ({ numberOfSteps })),
@@ -219,6 +225,7 @@ export const createCodelessSlice: StateCreator<CodelessState> = (set) => ({
       currentStep: number
       history: number[]
       latestStep: number
+      name: string
       slug: string
       user: string
       versions: Array<{
@@ -242,6 +249,7 @@ export const createCodelessSlice: StateCreator<CodelessState> = (set) => ({
       id: codeData.id,
       mode: modeRes.data.mode || 'local',
       model: settingsRes.data.value || 'gpt-3.5-turbo',
+      name: codeData.name,
       numberOfSteps: codeData.history.length,
       slug: codeData.slug,
       step: codeData.currentStep,

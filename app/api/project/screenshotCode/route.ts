@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
 
   const project = await db
     .selectFrom('projects')
-    .select(['id', 'ownerUserId'])
+    .select('ownerUserId')
     .where('id', '=', projectId)
     .executeTakeFirst()
 
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
     const screenshot = await page.screenshot({ type: 'png' })
 
     const { url: imageUrl } = await put(
-      `projects/screenshots/${project.id}.png`,
+      `projects/${projectId}/versions/${versionNumber}/screenshot.png`,
       screenshot,
       {
         access: 'public',

@@ -35,6 +35,7 @@ import { Tips } from './Toolbar/Tips'
 import { ExternalLink } from './ExternalLink'
 import { SnippetButton } from './Toolbar/SnippetButton'
 import { HistoryButton } from './Toolbar/HistoryButton'
+import { SettingsButton } from './Toolbar/SettingsButton'
 
 export const Toolbar: FC = () => {
   const onlySmallScreen = useMediaQuery('(max-width:599px)')
@@ -50,6 +51,8 @@ export const Toolbar: FC = () => {
 
   const id = useCodelessStore((state) => state.id)
   const setId = useCodelessStore((state) => state.setId)
+
+  const load = useCodelessStore((state) => state.load)
 
   const isLoading = useCodelessStore((state) => state.isLoading)
   const setIsLoading = useCodelessStore((state) => state.setIsLoading)
@@ -73,6 +76,8 @@ export const Toolbar: FC = () => {
   )
 
   const setSnippetOutput = useCodelessStore((state) => state.setSnippetOutput)
+
+  const slug = useCodelessStore((state) => state.slug)
 
   const step = useCodelessStore((state) => state.step)
   const setStep = useCodelessStore((state) => state.setStep)
@@ -231,8 +236,9 @@ export const Toolbar: FC = () => {
   useEffect(() => {
     if (!chatIsLoading) {
       setIsLoading(false)
+      load(slug)
     }
-  }, [chatIsLoading, setIsLoading])
+  }, [chatIsLoading, load, setIsLoading, slug])
 
   useEffect(() => {
     const version = versions.find((v) => v.number === codeHistory[step])
@@ -337,6 +343,7 @@ export const Toolbar: FC = () => {
           <div>
             <SnippetButton />
             <CodeButton />
+            <SettingsButton />
             <BrowseButton />
           </div>
         )}
@@ -360,7 +367,9 @@ export const Toolbar: FC = () => {
           <Button sx={{ color: 'white' }} onClick={handleFix}>
             <Stack alignItems="center" direction="row" gap={1}>
               <AutoFixHigh />
-              <Typography textTransform="none" variant="body2">Run Fix</Typography>
+              <Typography textTransform="none" variant="body2">
+                Run Fix
+              </Typography>
             </Stack>
           </Button>
         )}

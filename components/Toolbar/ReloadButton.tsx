@@ -27,13 +27,15 @@ export const ReloadButton: FC = () => {
 
   return (
     <Tooltip title="Reload">
-      <IconButton disabled={isDisabled} onClick={handleReload}>
-        <Refresh
-          sx={{
-            color: isDisabled ? 'gray' : 'white',
-          }}
-        />
-      </IconButton>
+      <span>
+        <IconButton disabled={isDisabled} onClick={handleReload}>
+          <Refresh
+            sx={{
+              color: isDisabled ? 'gray' : 'white',
+            }}
+          />
+        </IconButton>
+      </span>
     </Tooltip>
   )
 }

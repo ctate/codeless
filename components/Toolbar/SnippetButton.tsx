@@ -13,16 +13,18 @@ export const SnippetButton: FC = () => {
 
   return (
     <Tooltip title="Select Element">
-      <IconButton
-        disabled={isLoading}
-        onClick={() => setSnippetIsEnabled(!snippetIsEnabled)}
-      >
-        <AdsClickIcon
-          sx={{
-            color: isLoading ? 'gray' : snippetIsEnabled ? 'blue' : 'white',
-          }}
-        />
-      </IconButton>
+      <span>
+        <IconButton
+          disabled={isLoading}
+          onClick={() => setSnippetIsEnabled(!snippetIsEnabled)}
+        >
+          <AdsClickIcon
+            sx={{
+              color: isLoading ? 'gray' : snippetIsEnabled ? 'blue' : 'white',
+            }}
+          />
+        </IconButton>
+      </span>
     </Tooltip>
   )
 }

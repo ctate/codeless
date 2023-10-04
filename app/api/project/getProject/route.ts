@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
 
   const project = await db
     .selectFrom('projects')
-    .select(['id', 'latestVersion', 'slug', 'ownerUserId'])
+    .select(['id', 'latestVersion', 'name', 'slug', 'ownerUserId'])
     .where('slug', '=', slug)
     .executeTakeFirst()
 
@@ -20,7 +20,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({}, { status: 404 })
   }
 
-  const history = (await kv.get<number[]>(`/projects/${project.id}/history`))!
+  const history =
+    (await kv.get<number[]>(`projects/${project.id}/history`)) || []
+
+  if (!history.length && project.latestVersion > 0) {
+    history.push(project.latestVersion)
+    await kv.set(`projects/${project.id}/history`, history)
+  }
 
   const versions = await Promise.all(
     (
@@ -49,6 +55,7 @@ export async function POST(req: NextRequest) {
     imageUrl:
       versions.find((v) => v.number === project.latestVersion)?.imageUrl || '',
     latestStep: project.latestVersion,
+    name: project.name,
     slug: project.slug,
     user: project.ownerUserId,
     versions: versions,

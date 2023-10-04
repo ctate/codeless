@@ -43,13 +43,15 @@ export const RedoButton: FC = () => {
 
   return (
     <Tooltip title="Redo">
-      <IconButton disabled={isDisabled} onClick={handleRedo}>
-        <RedoIcon
-          sx={{
-            color: isDisabled ? 'gray' : 'white',
-          }}
-        />
-      </IconButton>
+      <span>
+        <IconButton disabled={isDisabled} onClick={handleRedo}>
+          <RedoIcon
+            sx={{
+              color: isDisabled ? 'gray' : 'white',
+            }}
+          />
+        </IconButton>
+      </span>
     </Tooltip>
   )
 }

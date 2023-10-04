@@ -9,11 +9,12 @@ import { kv } from '@vercel/kv'
 
 interface Request {
   id: number
-  code: string
+  name: string
+  slug: string
 }
 
 export async function POST(req: NextRequest) {
-  const { id, code } = (await req.json()) as Request
+  const { id, name, slug } = (await req.json()) as Request
 
   const session = await getServerSession(authOptions)
   if (!session?.user?.email) {
@@ -50,48 +51,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({}, { status: 403 })
   }
 
-  const { url: codeUrl } = await put(
-    `projects/${project.id}/code/${nanoid()}.html`,
-    code,
-    {
-      access: 'public',
-    }
-  )
-  const { url: messagesUrl } = await put(
-    `projects/${project.id}/messages/${nanoid()}.json`,
-    JSON.stringify([], null, 2),
-    {
-      access: 'public',
-    }
-  )
-
-  const latestVersion = project.latestVersion + 1
-
   await db
     .updateTable('projects')
     .set({
-      latestVersion,
+      name,
+      slug,
     })
     .where('id', '=', project.id)
-    .execute()
-
-  await db
-    .insertInto('projectVersions')
-    .values({
-      projectId: id,
-      number: latestVersion,
-      prompt: '',
-      codeUrl,
-      imageUrl: '',
-      messagesUrl,
-    })
     .executeTakeFirst()
-
-  const existingHistory =
-    (await kv.get<number[]>(`projects/${project.id}/history`)) || []
-  const updatedHistory = existingHistory.concat(latestVersion)
-
-  await kv.set(`projects/${project.id}/history`, updatedHistory)
 
   return NextResponse.json({})
 }

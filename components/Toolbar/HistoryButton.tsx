@@ -44,14 +44,19 @@ export const HistoryButton: FC = () => {
 
   return (
     <>
-      <Tooltip title="Redo">
-        <IconButton disabled={isDisabled} onClick={() => setShowVersions(true)}>
-          <BrowseGalleryIcon
-            sx={{
-              color: isDisabled ? 'gray' : 'white',
-            }}
-          />
-        </IconButton>
+      <Tooltip title="History">
+        <span>
+          <IconButton
+            disabled={isDisabled}
+            onClick={() => setShowVersions(true)}
+          >
+            <BrowseGalleryIcon
+              sx={{
+                color: isDisabled ? 'gray' : 'white',
+              }}
+            />
+          </IconButton>
+        </span>
       </Tooltip>
       <Drawer
         anchor="bottom"
@@ -91,43 +96,31 @@ export const HistoryButton: FC = () => {
                       borderRadius: '5px',
                       overflow: 'hidden',
                       position: 'relative',
-                      height: '250px',
                     }}
                   >
                     {version.imageUrl ? (
-                      <img
-                        src={version.imageUrl}
-                        style={{
-                          objectFit: 'cover',
-                          objectPosition: 'center top',
-                        }}
-                        width="100%"
-                        height="100%"
-                      />
+                      <a href={`/code/${slug}/${version.number}`}>
+                        <img src={version.imageUrl} width="100%" />
+                      </a>
                     ) : (
-                      <Stack
-                        alignItems="center"
-                        height="100%"
-                        justifyContent="center"
-                      >
-                        <Typography variant="body2">
-                          Preview not available
-                        </Typography>
-                      </Stack>
+                      <a href={`/code/${slug}/${version.number}`}>
+                        <img src="/images/screenshot-blank.png" width="100%" />
+                        <Stack
+                          alignItems="center"
+                          height="100%"
+                          justifyContent="center"
+                          position="absolute"
+                          left={0}
+                          right={0}
+                          top={0}
+                          bottom={0}
+                        >
+                          <Typography variant="body2">
+                            Preview not available
+                          </Typography>
+                        </Stack>
+                      </a>
                     )}
-                    <a
-                      href={`/code/${slug}/${version.number}`}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        position: 'absolute',
-                        left: 0,
-                        right: 0,
-                        top: 0,
-                        bottom: 0,
-                      }}
-                    />
                   </Stack>
                 </Grid>
               ))}

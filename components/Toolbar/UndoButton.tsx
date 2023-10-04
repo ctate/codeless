@@ -31,7 +31,7 @@ export const UndoButton: FC = () => {
 
     const newStep = step - 1
 
-    setCode(versions.find(v => v.number === history[newStep])?.code || '')
+    setCode(versions.find((v) => v.number === history[newStep])?.code || '')
     setStep(newStep)
   }
 
@@ -41,13 +41,15 @@ export const UndoButton: FC = () => {
 
   return (
     <Tooltip title="Undo">
-      <IconButton disabled={isDisabled} onClick={handleUndo}>
-        <UndoIcon
-          sx={{
-            color: isDisabled ? 'gray' : 'white',
-          }}
-        />
-      </IconButton>
+      <span>
+        <IconButton disabled={isDisabled} onClick={handleUndo}>
+          <UndoIcon
+            sx={{
+              color: isDisabled ? 'gray' : 'white',
+            }}
+          />
+        </IconButton>
+      </span>
     </Tooltip>
   )
 }

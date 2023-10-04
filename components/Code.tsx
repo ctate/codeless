@@ -5,6 +5,7 @@ import Editor, { DiffEditor, useMonaco, loader } from '@monaco-editor/react'
 
 import { useCodelessStore } from '@/stores/codeless'
 import axios from 'axios'
+import Head from 'next/head'
 
 export const Code: FC = () => {
   const code = useCodelessStore((state) => state.code)
