@@ -73,8 +73,8 @@ export async function POST(req: NextRequest) {
     .returning('id')
     .values({
       latestVersion: 0,
-      name: capitalCase(response.choices[0].message.content!),
-      slug: paramCase(slug),
+      name: capitalCase(response.choices[0].message.content!).slice(0, 255),
+      slug: paramCase(slug).slice(0, 255),
       ownerUserId: userId,
     })
     .executeTakeFirst())!

@@ -158,7 +158,7 @@ export async function POST(req: NextRequest) {
         .values({
           projectId: project.id,
           number: latestVersion,
-          prompt: userMessages.slice(-1)[0].content!,
+          prompt: userMessages.slice(-1)[0].content!.slice(0, 255),
           codeUrl,
           imageUrl: '',
           messagesUrl,

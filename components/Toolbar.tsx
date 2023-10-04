@@ -36,6 +36,7 @@ import { ExternalLink } from './ExternalLink'
 import { SnippetButton } from './Toolbar/SnippetButton'
 import { HistoryButton } from './Toolbar/HistoryButton'
 import { SettingsButton } from './Toolbar/SettingsButton'
+import { DeleteButton } from './Toolbar/DeleteButton'
 
 export const Toolbar: FC = () => {
   const onlySmallScreen = useMediaQuery('(max-width:599px)')
@@ -352,6 +353,9 @@ export const Toolbar: FC = () => {
             <SnippetButton />
             <CodeButton />
             <SettingsButton />
+            {session?.user?.email === process.env.NEXT_PUBLIC_ADMIN_USER && (
+              <DeleteButton />
+            )}
             <BrowseButton />
           </div>
         )}
