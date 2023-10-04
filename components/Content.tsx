@@ -65,7 +65,7 @@ export const Content: FC = () => {
       >
         <Preview />
         <Toolbar />
-        {/* <Featured /> */}
+        <Featured />
       </Stack>
       <Code />
       <Browse />
