@@ -4,6 +4,7 @@
   "scripts": {
     "dev": "next dev -p 1355",
     "build": "next build",
+    "postinstall": "npx playwright install",
     "start": "next start -p 1355",
     "lint": "next lint",
     "tauri": "tauri"
@@ -31,7 +32,7 @@
     "next": "13.4.19",
     "next-auth": "^4.23.1",
     "openai": "^4.6.0",
-    "playwright-chromium": "^1.38.1",
+    "playwright": "^1.38.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-github-btn": "^1.4.0",
