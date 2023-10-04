@@ -82,9 +82,6 @@ export const HistoryButton: FC = () => {
                     >
                       #{version.number}
                     </Typography>
-                    <Typography variant="body2" style={{ color: 'black' }}>
-                      {version.prompt}
-                    </Typography>
                   </Stack>
                   <Stack
                     my={1}
@@ -129,6 +126,11 @@ export const HistoryButton: FC = () => {
                         </Stack>
                       </a>
                     )}
+                  </Stack>
+                  <Stack alignItems="center" direction="row" mb={1} gap={0.5}>
+                    <Typography variant="body2" style={{ color: 'black' }}>
+                      {version.prompt}
+                    </Typography>
                   </Stack>
                 </Grid>
               ))}
