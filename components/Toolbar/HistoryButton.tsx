@@ -100,11 +100,19 @@ export const HistoryButton: FC = () => {
                   >
                     {version.imageUrl ? (
                       <a href={`/code/${slug}/${version.number}`}>
-                        <img src={version.imageUrl} width="100%" />
+                        <img
+                          src={version.imageUrl}
+                          width="100%"
+                          style={{ display: 'block' }}
+                        />
                       </a>
                     ) : (
                       <a href={`/code/${slug}/${version.number}`}>
-                        <img src="/images/screenshot-blank.png" width="100%" />
+                        <img
+                          src="/images/screenshot-blank.png"
+                          width="100%"
+                          style={{ display: 'block' }}
+                        />
                         <Stack
                           alignItems="center"
                           height="100%"
@@ -115,7 +123,7 @@ export const HistoryButton: FC = () => {
                           top={0}
                           bottom={0}
                         >
-                          <Typography variant="body2">
+                          <Typography variant="body2" sx={{ color: 'black' }}>
                             Preview not available
                           </Typography>
                         </Stack>

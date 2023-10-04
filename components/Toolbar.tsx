@@ -236,7 +236,9 @@ export const Toolbar: FC = () => {
   useEffect(() => {
     if (!chatIsLoading) {
       setIsLoading(false)
-      load(slug)
+      if (slug) {
+        load(slug)
+      }
     }
   }, [chatIsLoading, load, setIsLoading, slug])
 

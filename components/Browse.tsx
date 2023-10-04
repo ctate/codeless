@@ -202,43 +202,42 @@ export const Browse: FC = () => {
                           borderRadius: '5px',
                           overflow: 'hidden',
                           position: 'relative',
-                          height: '250px',
                         }}
                       >
                         {project.imageUrl ? (
-                          <img
-                            src={project.imageUrl}
-                            style={{
-                              objectFit: 'cover',
-                              objectPosition: 'center top',
-                            }}
-                            width="100%"
-                            height="100%"
-                          />
+                          <a href={`/code/${project.slug}`}>
+                            <img
+                              src={project.imageUrl}
+                              width="100%"
+                              style={{ display: 'block' }}
+                            />
+                          </a>
                         ) : (
-                          <Stack
-                            alignItems="center"
-                            height="100%"
-                            justifyContent="center"
-                          >
-                            <Typography variant="body2">
-                              Preview not available
-                            </Typography>
-                          </Stack>
+                          <a href={`/code/${project.slug}`}>
+                            <img
+                              src="/images/screenshot-blank.png"
+                              width="100%"
+                              style={{ display: 'block' }}
+                            />
+                            <Stack
+                              alignItems="center"
+                              height="100%"
+                              justifyContent="center"
+                              position="absolute"
+                              left={0}
+                              right={0}
+                              top={0}
+                              bottom={0}
+                            >
+                              <Typography
+                                variant="body2"
+                                sx={{ color: 'black' }}
+                              >
+                                Preview not available
+                              </Typography>
+                            </Stack>
+                          </a>
                         )}
-                        <a
-                          href={`/code/${project.slug}`}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            position: 'absolute',
-                            left: 0,
-                            right: 0,
-                            top: 0,
-                            bottom: 0,
-                          }}
-                        />
                       </Stack>
                     </Grid>
                   ))}
