@@ -85,6 +85,7 @@ export async function POST(req: NextRequest) {
       imageUrl,
     })
   } catch (error) {
+    console.log(error)
     return NextResponse.json({}, { status: 500 })
   }
 }
