@@ -1,6 +1,6 @@
 import { put } from '@vercel/blob'
 import axios from 'axios'
-import { chromium } from 'playwright'
+import puppeteer from 'puppeteer'
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 
@@ -55,9 +55,10 @@ export async function POST(req: NextRequest) {
   const dataUrl = 'data:text/html;charset=utf-8,' + escape(codeRes.data)
 
   try {
-    const browser = await chromium.launch()
-    const context = await browser.newContext()
-    const page = await context.newPage()
+    const browser = await puppeteer.launch({
+      headless: 'new'
+    })
+    const page = await browser.newPage()
     await page.goto(dataUrl)
     await new Promise((res) => setTimeout(res, 2000))
     const screenshot = await page.screenshot({ type: 'png' })
