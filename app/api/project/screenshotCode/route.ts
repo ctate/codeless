@@ -1,6 +1,6 @@
 import { put } from '@vercel/blob'
 import axios from 'axios'
-import { webkit } from 'playwright'
+import { chromium } from 'playwright-chromium'
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
   const dataUrl = 'data:text/html;charset=utf-8,' + escape(codeRes.data)
 
   try {
-    const browser = await webkit.launch()
+    const browser = await chromium.launch()
     const context = await browser.newContext()
     const page = await context.newPage()
     await page.goto(dataUrl)
