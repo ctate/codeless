@@ -62,7 +62,8 @@ export const DeleteButton: FC = () => {
           <DialogTitle>Settings</DialogTitle>
           <DialogContent>
             <Typography>
-              Are you sure?? If so, enter the slug below and click "Delete":{' '}
+              Are you sure?? If so, enter the slug below and click <b>Delete</b>
+              :{' '}
             </Typography>
             <Typography>{existingSlug}</Typography>
             <Stack gap={2} mt={1}>
