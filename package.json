@@ -4,6 +4,7 @@
   "scripts": {
     "dev": "next dev -p 1355",
     "build": "next build",
+    "postinstall": "npx @puppeteer/browsers install chrome",
     "start": "next start -p 1355",
     "lint": "next lint",
     "tauri": "tauri"

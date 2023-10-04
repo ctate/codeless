@@ -36,3 +36,6 @@ next-env.d.ts
 
 # codeless
 .codeless/
+
+# browsers
+chrome/
