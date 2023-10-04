@@ -1,10 +1,10 @@
-import { XIcon } from '@/icons/XIcon'
-import { useCodelessStore } from '@/stores/codeless'
+import { ArrowRight, OpenInNew as OpenInNewIcon } from '@mui/icons-material'
 import {
   Avatar,
   Box,
   Button,
   Chip,
+  Divider,
   Menu,
   MenuItem,
   Stack,
@@ -14,10 +14,12 @@ import {
 import { signIn, signOut, useSession } from 'next-auth/react'
 import { FC, useState } from 'react'
 import GitHubButton from 'react-github-btn'
-import { ExternalLink } from './ExternalLink'
+
 import { GitHubIcon } from '@/icons/GitHubIcon'
-import Link from 'next/link'
-import { ArrowRight } from '@mui/icons-material'
+import { XIcon } from '@/icons/XIcon'
+import { useCodelessStore } from '@/stores/codeless'
+
+import { ExternalLink } from './ExternalLink'
 
 export const Header: FC = () => {
   const onlySmallScreen = useMediaQuery('(max-width:599px)')
@@ -160,9 +162,19 @@ export const Header: FC = () => {
         }}
         sx={{ marginTop: 1, width: 500 }}
       >
+        {/* <MenuItem onClick={handleLogout}>My Code</MenuItem>
+        <Divider /> */}
         <MenuItem onClick={handleClose}>
           <ExternalLink href={`https://github.com/${session?.user?.email}`}>
-            GitHub Profile
+            <Stack
+              alignItems="center"
+              direction="row"
+              gap={1}
+              justifyContent="space-between"
+            >
+              <Typography sx={{ color: 'black' }}>GitHub Profile</Typography>
+              <OpenInNewIcon sx={{ color: 'black' }} />
+            </Stack>
           </ExternalLink>
         </MenuItem>
         <MenuItem onClick={handleLogout}>Sign Out</MenuItem>

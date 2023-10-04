@@ -4,6 +4,8 @@ import {
   Close as CloseIcon,
 } from '@mui/icons-material'
 import {
+  Box,
+  Chip,
   Container,
   Drawer,
   Grid,
@@ -13,6 +15,7 @@ import {
   Typography,
   useMediaQuery,
 } from '@mui/material'
+import axios from 'axios'
 import { FC, useEffect, useState } from 'react'
 
 export const HistoryButton: FC = () => {
@@ -20,9 +23,12 @@ export const HistoryButton: FC = () => {
 
   const history = useCodelessStore((state) => state.history)
 
-  const setCode = useCodelessStore((state) => state.setCode)
+  const id = useCodelessStore((state) => state.id)
+
+  const load = useCodelessStore((state) => state.load)
 
   const isLoading = useCodelessStore((state) => state.isLoading)
+  const setIsLoading = useCodelessStore((state) => state.setIsLoading)
 
   const isSaving = useCodelessStore((state) => state.isSaving)
 
@@ -37,6 +43,27 @@ export const HistoryButton: FC = () => {
 
   const [isDisabled, setIsDiabled] = useState(false)
   const [showVersions, setShowVersions] = useState(false)
+
+  const handleVersion = async (number: number) => {
+    setShowVersions(false)
+    setIsLoading(true)
+
+    if (number !== history[step]) {
+      await axios({
+        method: 'POST',
+        url: '/api/project/loadVersion',
+        data: {
+          projectId: id,
+          versionNumber: number,
+          step,
+        },
+      })
+
+      await load(slug)
+    }
+
+    setIsLoading(false)
+  }
 
   useEffect(() => {
     setIsDiabled(isLoading || isSaving || !numberOfSteps)
@@ -96,15 +123,21 @@ export const HistoryButton: FC = () => {
                     }}
                   >
                     {version.imageUrl ? (
-                      <a href={`/code/${slug}/${version.number}`}>
+                      <button
+                        onClick={() => handleVersion(version.number)}
+                        style={{ border: 'none', cursor: 'pointer' }}
+                      >
                         <img
                           src={version.imageUrl}
                           width="100%"
                           style={{ display: 'block' }}
                         />
-                      </a>
+                      </button>
                     ) : (
-                      <a href={`/code/${slug}/${version.number}`}>
+                      <button
+                        onClick={() => handleVersion(version.number)}
+                        style={{ border: 'none', cursor: 'pointer' }}
+                      >
                         <img
                           src="/images/screenshot-blank.png"
                           width="100%"
@@ -124,7 +157,27 @@ export const HistoryButton: FC = () => {
                             Preview not available
                           </Typography>
                         </Stack>
-                      </a>
+                      </button>
+                    )}
+                    {(history.slice(-1)[0] === version.number ||
+                      history[step] === version.number) && (
+                      <Stack direction="row" position="absolute" right={10} top={10} gap={1}>
+                        {history[step] === version.number && (
+                          <Chip
+                            label="Selected"
+                            size="small"
+                            variant="outlined"
+                          />
+                        )}
+                        {history.slice(-1)[0] === version.number && (
+                          <Chip
+                            color="info"
+                            label="Current"
+                            size="small"
+                            variant="outlined"
+                          />
+                        )}
+                      </Stack>
                     )}
                   </Stack>
                   <Stack alignItems="center" direction="row" mb={1} gap={0.5}>

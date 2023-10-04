@@ -167,7 +167,7 @@ export async function POST(req: NextRequest) {
 
       const existingHistory =
         (await kv.get<number[]>(`projects/${project.id}/history`)) || []
-      const updatedHistory = existingHistory.concat(latestVersion)
+      const updatedHistory = existingHistory.slice(0, step + 1).concat(latestVersion)
 
       await kv.set(`projects/${project.id}/history`, updatedHistory)
 

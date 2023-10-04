@@ -12,12 +12,18 @@ export const Code: FC = () => {
 
   const id = useCodelessStore((state) => state.id)
 
+  const load = useCodelessStore((state) => state.load)
+
   const isLoading = useCodelessStore((state) => state.isLoading)
 
   const isSaving = useCodelessStore((state) => state.isSaving)
 
   const showCode = useCodelessStore((state) => state.showCode)
   const setShowCode = useCodelessStore((state) => state.setShowCode)
+
+  const slug = useCodelessStore((state) => state.slug)
+
+  const step = useCodelessStore((state) => state.step)
 
   const [manualCode, setManualCode] = useState(code)
 
@@ -28,8 +34,11 @@ export const Code: FC = () => {
       data: {
         id,
         code: manualCode,
+        step,
       },
     })
+
+    await load(slug)
   }
 
   return (

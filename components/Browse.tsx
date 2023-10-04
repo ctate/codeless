@@ -67,7 +67,7 @@ export const Browse: FC = () => {
         id: c.id,
         title: c.title,
         slug: c.slug,
-        createdAt: c.createdAt,
+        createdAt: new Date(c.createdAt),
         imageUrl: c.imageUrl,
         avatar: c.avatar,
         username: c.username,
@@ -188,7 +188,13 @@ export const Browse: FC = () => {
                             sx={{ width: 24, height: 24 }}
                           />
                         </ExternalLink>
-                        <Typography variant="body2" style={{ color: 'black' }}>
+                        <Typography
+                          variant="body2"
+                          overflow="hidden"
+                          textOverflow="ellipsis"
+                          whiteSpace="nowrap"
+                          style={{ color: 'black' }}
+                        >
                           {project.title}
                         </Typography>
                       </Stack>

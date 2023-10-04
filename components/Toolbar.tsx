@@ -104,7 +104,7 @@ export const Toolbar: FC = () => {
   const formRef = useRef<HTMLFormElement>(null)
 
   const handleFix = async () => {
-    await fetch(`/api/project/fixScreenshots`, {
+    await fetch(`/api/admin/migrate`, {
       method: 'POST',
     })
   }

@@ -9,6 +9,8 @@ export const Preview: FC = () => {
 
   const id = useCodelessStore((state) => state.id)
 
+  const load = useCodelessStore((state) => state.load)
+
   const isLoading = useCodelessStore((state) => state.isLoading)
 
   const setIsSaving = useCodelessStore((state) => state.setIsSaving)
@@ -25,6 +27,10 @@ export const Preview: FC = () => {
   const snippetOutput = useCodelessStore((state) => state.snippetOutput)
   const setSnippetOutput = useCodelessStore((state) => state.setSnippetOutput)
 
+  const slug = useCodelessStore((state) => state.slug)
+
+  const step = useCodelessStore((state) => state.step)
+
   const setText = useCodelessStore((state) => state.setText)
 
   const handleCodeUpdate = async (code: string) => {
@@ -39,11 +45,14 @@ export const Preview: FC = () => {
       data: {
         id,
         code,
+        step,
       },
     })
 
     setCode(code)
     setIsSaving(false)
+
+    await load(slug)
   }
 
   useEffect(() => {

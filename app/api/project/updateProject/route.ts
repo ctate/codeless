@@ -10,10 +10,11 @@ import { db } from '@/lib/db'
 interface Request {
   id: number
   code: string
+  step: number
 }
 
 export async function POST(req: NextRequest) {
-  const { id, code } = (await req.json()) as Request
+  const { id, code, step } = (await req.json()) as Request
 
   const session = await getServerSession(authOptions)
   if (!session?.user?.email) {
@@ -89,9 +90,23 @@ export async function POST(req: NextRequest) {
 
   const existingHistory =
     (await kv.get<number[]>(`projects/${project.id}/history`)) || []
-  const updatedHistory = existingHistory.concat(latestVersion)
+  const updatedHistory = existingHistory
+    .slice(0, step + 1)
+    .concat(latestVersion)
 
   await kv.set(`projects/${project.id}/history`, updatedHistory)
+
+  await fetch(`${process.env.NEXTAUTH_URL}/api/project/screenshotCode`, {
+    method: 'POST',
+    headers: {
+      cookie: req.headers.get('cookie')!,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      projectId: id,
+      versionNumber: latestVersion,
+    }),
+  })
 
   return NextResponse.json({})
 }
