@@ -85,6 +85,8 @@ export const Toolbar: FC = () => {
   const text = useCodelessStore((state) => state.text)
   const setText = useCodelessStore((state) => state.setText)
 
+  const user = useCodelessStore((state) => state.user)
+
   const versions = useCodelessStore((state) => state.versions)
 
   const {
@@ -302,7 +304,11 @@ export const Toolbar: FC = () => {
                 autoComplete="off"
                 autoCorrect="off"
                 autoFocus
-                disabled={snippetIsEnabled && !snippet}
+                disabled={
+                  (snippetIsEnabled && !snippet) ||
+                  (user.username.length > 0 &&
+                    user.username !== session?.user?.email)
+                }
                 onChange={(e) => setText(e.target.value)}
                 placeholder={
                   id ? 'Tell me more...' : 'What do you want to build?'

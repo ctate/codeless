@@ -16,6 +16,10 @@ type Version = {
   number: number
   prompt: string
 }
+type User = {
+  imageUrl: string
+  username: string
+}
 
 export interface CodelessState {
   code: string
@@ -81,8 +85,8 @@ export interface CodelessState {
   text: string
   setText: (text: string) => void
 
-  user: string
-  setUser: (user: string) => void
+  user: User
+  setUser: (user: User) => void
 
   versions: Version[]
   setVersions: (versions: Version[]) => void
@@ -157,7 +161,10 @@ export const createCodelessSlice: StateCreator<CodelessState> = (set) => ({
   text: '',
   setText: (text) => set(() => ({ text })),
 
-  user: '',
+  user: {
+    imageUrl: '',
+    username: '',
+  },
   setUser: (user) => set(() => ({ user })),
 
   versions: [],
@@ -227,7 +234,10 @@ export const createCodelessSlice: StateCreator<CodelessState> = (set) => ({
       latestStep: number
       name: string
       slug: string
-      user: string
+      user: {
+        imageUrl: string
+        username: string
+      }
       versions: Array<{
         code: string
         imageUrl: string
@@ -253,6 +263,7 @@ export const createCodelessSlice: StateCreator<CodelessState> = (set) => ({
       numberOfSteps: codeData.history.length,
       slug: codeData.slug,
       step: codeData.currentStep,
+      user: codeData.user,
       versions: codeData.versions,
     })
   },

@@ -1,11 +1,8 @@
-import { put } from '@vercel/blob'
 import { getServerSession } from 'next-auth'
 import { NextRequest, NextResponse } from 'next/server'
 
-import { authOptions } from '../../auth/[...nextauth]/route'
+import { authOptions } from '@/app/auth'
 import { db } from '@/lib/db'
-import { nanoid } from 'nanoid'
-import { kv } from '@vercel/kv'
 
 interface Request {
   id: number

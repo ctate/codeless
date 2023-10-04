@@ -1,6 +1,7 @@
 import { XIcon } from '@/icons/XIcon'
 import { useCodelessStore } from '@/stores/codeless'
 import {
+  Avatar,
   Box,
   Button,
   Chip,
@@ -16,6 +17,7 @@ import GitHubButton from 'react-github-btn'
 import { ExternalLink } from './ExternalLink'
 import { GitHubIcon } from '@/icons/GitHubIcon'
 import Link from 'next/link'
+import { ArrowRight } from '@mui/icons-material'
 
 export const Header: FC = () => {
   const onlySmallScreen = useMediaQuery('(max-width:599px)')
@@ -25,6 +27,10 @@ export const Header: FC = () => {
   const id = useCodelessStore((state) => state.id)
 
   const mode = useCodelessStore((state) => state.mode)
+
+  const name = useCodelessStore((state) => state.name)
+
+  const user = useCodelessStore((state) => state.user)
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const open = Boolean(anchorEl)
@@ -51,19 +57,41 @@ export const Header: FC = () => {
         padding="20px 20px 0 20px"
       >
         <Stack alignItems="center" direction="row" gap={1}>
-          <a href="/" style={{ color: 'white' }}>
-            <Typography component="h1" variant="h6" textTransform="lowercase">
-              Codeless
-            </Typography>
-          </a>
-          {mode === 'demo' && (
-            <Chip
-              label="Beta"
-              color="primary"
-              size="small"
-              variant="outlined"
-              sx={{ textTransform: 'lowercase' }}
-            />
+          {!onlySmallScreen && (
+            <>
+              <a href="/" style={{ color: 'white' }}>
+                <Typography
+                  component="h1"
+                  variant="h6"
+                  textTransform="lowercase"
+                >
+                  Codeless
+                </Typography>
+              </a>
+              {mode === 'demo' && (
+                <Chip
+                  label="Beta"
+                  color="primary"
+                  size="small"
+                  variant="outlined"
+                />
+              )}
+              {user.username.length > 0 && <ArrowRight />}
+            </>
+          )}
+          {user.username.length > 0 && (
+            <>
+              <Avatar src={user.imageUrl} sx={{ width: 24, height: 24 }} />
+              <Typography
+                component="h1"
+                overflow="hidden"
+                textOverflow="ellipsis"
+                whiteSpace="nowrap"
+                variant="h6"
+              >
+                {name}
+              </Typography>
+            </>
           )}
         </Stack>
         <Stack alignItems="center" direction="row" gap={2}>
@@ -73,7 +101,13 @@ export const Header: FC = () => {
                 <Button
                   disableRipple
                   onClick={handleClick}
-                  sx={{ color: 'white', p: 0, border: 'none', mt: -0.5, minWidth: 0 }}
+                  sx={{
+                    color: 'white',
+                    p: 0,
+                    border: 'none',
+                    mt: -0.5,
+                    minWidth: 0,
+                  }}
                 >
                   <Stack alignItems="center" direction="row" gap={1}>
                     <img height={24} src={session.user.image!} />

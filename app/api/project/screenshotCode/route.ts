@@ -1,11 +1,11 @@
 import { put } from '@vercel/blob'
+import axios from 'axios'
 import { chromium } from 'playwright'
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 
-import { authOptions } from '../../auth/[...nextauth]/route'
+import { authOptions } from '@/app/auth'
 import { db } from '@/lib/db'
-import axios from 'axios'
 
 interface Request {
   projectId: number

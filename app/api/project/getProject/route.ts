@@ -20,6 +20,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({}, { status: 404 })
   }
 
+  const user = await db
+    .selectFrom('users')
+    .select(['id', 'imageUrl', 'username'])
+    .where('id', '=', project.ownerUserId)
+    .executeTakeFirst()
+
+  if (!user) {
+    return NextResponse.json({}, { status: 404 })
+  }
+
   const history =
     (await kv.get<number[]>(`projects/${project.id}/history`)) || []
 
@@ -57,7 +67,7 @@ export async function POST(req: NextRequest) {
     latestStep: project.latestVersion,
     name: project.name,
     slug: project.slug,
-    user: project.ownerUserId,
+    user,
     versions: versions,
   })
 }
