@@ -13,7 +13,6 @@ import { listFiles } from '@/utils/listFiles'
 import { paramCase } from 'change-case'
 import { Chat } from 'openai/resources/index.mjs'
 import { cleanHtml } from '@/utils/cleanHtml'
-import { authOptions } from '../auth/[...nextauth]/route'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || '',

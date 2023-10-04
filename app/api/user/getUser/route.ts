@@ -1,8 +1,7 @@
 import { getServerSession } from 'next-auth'
 import { NextRequest, NextResponse } from 'next/server'
 
-import { authOptions } from '../../auth/[...nextauth]/route'
-import axios from 'axios'
+import { authOptions } from '@/app/auth'
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)

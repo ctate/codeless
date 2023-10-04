@@ -3,8 +3,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import OpenAI from 'openai'
 
-import { authOptions } from '../../auth/[...nextauth]/route'
 import { db, deinit, init } from '@/lib/db'
+import { authOptions } from '@/app/auth'
 
 interface Request {
   prompt: string

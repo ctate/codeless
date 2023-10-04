@@ -1,7 +1,7 @@
+import { authOptions } from '@/app/auth'
 import { getServerSession } from 'next-auth'
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
-import { authOptions } from '../../auth/[...nextauth]/route'
 
 interface Request {
   code: string
