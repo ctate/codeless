@@ -35,7 +35,7 @@ export const Preview: FC = () => {
 
     await axios({
       method: 'POST',
-      url: '/api/code/updateCode',
+      url: '/api/project/updateProject',
       data: {
         id,
         code,
@@ -56,113 +56,130 @@ export const Preview: FC = () => {
       code +
         `
           <div id="codeless-script-injection">
-          <style>
-            #borderOverlay {
-              background-color: red;
-              opacity: .25;
-            }
-
-            #borderOverlay.clicked {
-              background-color: blue;
-            }
-          </style>
-          <div id="borderOverlay" style="cursor: default !important; position: fixed; pointer-events: none; display: none;"></div>
-
-            <script>
-            let isClicked = false;
-            let isEnabled = false;
-
-            window.addEventListener('message', function(event) {
-              isEnabled = event.data;
-            });
-
-            document.addEventListener('DOMContentLoaded', function() {
-              const borderOverlay = document.getElementById('borderOverlay');
+            <style type="text/css">
+              #borderOverlay {
+                background-color: red;
+                opacity: 0.25;
+              }
           
-              document.body.addEventListener('scroll', function(e) {
-                isClicked = false;
-                borderOverlay.style.display = 'none';
-                e.target.classList.remove('codelessScriptSelected');
-                window.parent.postMessage('', 'http://localhost:1355');
-              });
-
-              document.body.addEventListener('mouseover', function(e) {
+              #borderOverlay.clicked {
+                background-color: blue;
+              }
+            </style>
+            <div
+              id="borderOverlay"
+              style="
+                cursor: default !important;
+                position: fixed;
+                pointer-events: none;
+                display: none;
+              "
+            ></div>
+          
+            <script type="text/javascript">
+              document.addEventListener("DOMContentLoaded", () => {
+                let isClicked = false;
+                let isEnabled = false;
+          
+                window.addEventListener("message", function (event) {
+                  isEnabled = event.data;
+                });
+          
+                const borderOverlay = document.getElementById("borderOverlay");
+          
+                document.body.addEventListener("scroll", function (e) {
+                  isClicked = false;
+                  borderOverlay.style.display = "none";
+                  e.target.classList.remove("codelessScriptSelected");
+                  window.parent.postMessage("", "${process.env.NEXT_PUBLIC_HOST}");
+                });
+          
+                document.body.addEventListener("mouseover", function (e) {
                   if (!isEnabled) return;
                   if (isClicked) return;
-
+          
                   // Avoid targeting the borderOverlay itself or the html and body elements
-                  if (e.target === borderOverlay || e.target.tagName === 'HTML' || e.target.tagName === 'BODY') {
-                      return;
+                  if (
+                    e.target === borderOverlay ||
+                    e.target.tagName === "HTML" ||
+                    e.target.tagName === "BODY"
+                  ) {
+                    return;
                   }
           
                   const rect = e.target.getBoundingClientRect();
-                  
+          
                   // Sometimes elements might have zero width or height. We can choose to ignore those.
                   if (rect.width === 0 || rect.height === 0) {
-                      borderOverlay.style.display = 'none';
-                      return;
+                    borderOverlay.style.display = "none";
+                    return;
                   }
           
-                  borderOverlay.style.top = rect.top + 'px';
-                  borderOverlay.style.left = rect.left + 'px';
-                  borderOverlay.style.width = rect.width + 'px';
-                  borderOverlay.style.height = rect.height + 'px';
-                  borderOverlay.style.display = 'block';
-                  borderOverlay.classList.remove('clicked');
-              });
+                  borderOverlay.style.top = rect.top + "px";
+                  borderOverlay.style.left = rect.left + "px";
+                  borderOverlay.style.width = rect.width + "px";
+                  borderOverlay.style.height = rect.height + "px";
+                  borderOverlay.style.display = "block";
+                  borderOverlay.classList.remove("clicked");
+                });
           
-              document.body.addEventListener('mouseout', function(e) {
+                document.body.addEventListener("mouseout", function (e) {
                   if (!isEnabled) return;
                   if (isClicked) return;
-
-                  if (e.target === borderOverlay || e.target.tagName === 'HTML' || e.target.tagName === 'BODY') {
-                      return;
-                  }
-                  borderOverlay.style.display = 'none';
-              });
-
-              document.body.addEventListener('mousedown', function(e) {
-                if (!isEnabled) return;
-                if (isClicked) {
-                  isClicked = false;
-                  borderOverlay.style.display = 'none';
-                  e.target.classList.remove('codelessScriptSelected');
-                  window.parent.postMessage('', 'http://localhost:1355');
-                  return;
-                }
-
-                // Avoid targeting the borderOverlay itself or the html and body elements
-                if (e.target === borderOverlay || e.target.tagName === 'HTML' || e.target.tagName === 'BODY') {
-                    return;
-                }
-        
-                const rect = e.target.getBoundingClientRect();
-                
-                // Sometimes elements might have zero width or height. We can choose to ignore those.
-                if (rect.width === 0 || rect.height === 0) {
-                    borderOverlay.style.display = 'none';
-                    return;
-                }
-        
-                borderOverlay.style.top = window.scrollY + rect.top + 'px';
-                borderOverlay.style.left = window.scrollX + rect.left + 'px';
-                borderOverlay.style.width = rect.width + 'px';
-                borderOverlay.style.height = rect.height + 'px';
-                borderOverlay.style.display = 'block';
-                borderOverlay.classList.add('clicked');
-
-                isClicked = true;
-                e.target.classList.add('codelessScriptSelected');
-
-                window.parent.postMessage(e.target.outerHTML, 'http://localhost:1355');
-            });
-              
-          });
           
-
+                  if (
+                    e.target === borderOverlay ||
+                    e.target.tagName === "HTML" ||
+                    e.target.tagName === "BODY"
+                  ) {
+                    return;
+                  }
+                  borderOverlay.style.display = "none";
+                });
+          
+                document.body.addEventListener("mousedown", function (e) {
+                  if (!isEnabled) return;
+                  if (isClicked) {
+                    isClicked = false;
+                    borderOverlay.style.display = "none";
+                    e.target.classList.remove("codelessScriptSelected");
+                    window.parent.postMessage("", "${process.env.NEXT_PUBLIC_HOST}");
+                    return;
+                  }
+          
+                  // Avoid targeting the borderOverlay itself or the html and body elements
+                  if (
+                    e.target === borderOverlay ||
+                    e.target.tagName === "HTML" ||
+                    e.target.tagName === "BODY"
+                  ) {
+                    return;
+                  }
+          
+                  const rect = e.target.getBoundingClientRect();
+          
+                  // Sometimes elements might have zero width or height. We can choose to ignore those.
+                  if (rect.width === 0 || rect.height === 0) {
+                    borderOverlay.style.display = "none";
+                    return;
+                  }
+          
+                  borderOverlay.style.top = window.scrollY + rect.top + "px";
+                  borderOverlay.style.left = window.scrollX + rect.left + "px";
+                  borderOverlay.style.width = rect.width + "px";
+                  borderOverlay.style.height = rect.height + "px";
+                  borderOverlay.style.display = "block";
+                  borderOverlay.classList.add("clicked");
+          
+                  isClicked = true;
+                  e.target.classList.add("codelessScriptSelected");
+          
+                  window.parent.postMessage(e.target.outerHTML, "${process.env.NEXT_PUBLIC_HOST}");
+                });
+              });
             </script>
-            </div>
-          `
+          </div>      
+        `
     )
     iframeRef.current.contentWindow?.document.close()
   }, [code, iframeRef, isLoading])
@@ -173,7 +190,7 @@ export const Preview: FC = () => {
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      if (event.origin !== 'http://localhost:1355') {
+      if (event.origin !== process.env.NEXT_PUBLIC_HOST) {
         return
       }
       setSnippet(event.data)

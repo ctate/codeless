@@ -31,12 +31,14 @@ export const RedoButton: FC = () => {
 
     const newStep = step + 1
 
-    setCode(versions[history[newStep]].code)
+    setCode(versions.find((v) => v.number === history[newStep])?.code || '')
     setStep(newStep)
   }
 
   useEffect(() => {
-    setIsDiabled(isLoading || isSaving || numberOfSteps === 0 || numberOfSteps - 1 <= step)
+    setIsDiabled(
+      isLoading || isSaving || numberOfSteps === 0 || numberOfSteps - 1 <= step
+    )
   }, [isLoading, isSaving, numberOfSteps, step])
 
   return (

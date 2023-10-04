@@ -31,7 +31,7 @@ export const UndoButton: FC = () => {
 
     const newStep = step - 1
 
-    setCode(versions[history[newStep]].code)
+    setCode(versions.find(v => v.number === history[newStep])?.code || '')
     setStep(newStep)
   }
 

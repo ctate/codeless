@@ -19,10 +19,11 @@ import { ExternalLink } from './ExternalLink'
 import { Close } from '@mui/icons-material'
 
 interface Component {
-  id: string
+  id: number
   title: string
+  slug: string
   createdAt: number
-  image: string
+  imageUrl: string
   avatar: string
   username: string
 }
@@ -36,19 +37,19 @@ export const Browse: FC = () => {
   const setIsLoading = useCodelessStore((state) => state.setIsLoading)
   const load = useCodelessStore((state) => state.load)
 
-  const [components, setComponents] = useState<Component[]>([])
+  const [projects, setComponents] = useState<Component[]>([])
   const [isInitialized, setIsInitialized] = useState(false)
   const [isLoadingBrowse, setIsLoadingBrowse] = useState(false)
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'name'>('newest')
 
-  const handleLoadComponent = async (component: string) => {
+  const handleLoadComponent = async (project: string) => {
     setShowComponents(false)
 
     setIsLoading(true)
 
-    await load(component)
+    await load(project)
 
-    history.pushState({}, '', `/code/${component}`)
+    history.pushState({}, '', `/code/${project}`)
 
     setIsLoading(false)
   }
@@ -58,15 +59,16 @@ export const Browse: FC = () => {
 
     const res = await axios({
       method: 'POST',
-      url: '/api/code/listCode',
+      url: '/api/project/listProjects',
     })
 
     setComponents(
       res.data.code.map((c: any) => ({
-        id: c.id.slice(5),
+        id: c.id,
         title: c.title,
+        slug: c.slug,
         createdAt: c.createdAt,
-        image: c.image,
+        imageUrl: c.imageUrl,
         avatar: c.avatar,
         username: c.username,
       }))
@@ -167,7 +169,7 @@ export const Browse: FC = () => {
             )}
             {!isLoadingBrowse && (
               <Grid container spacing={2}>
-                {components
+                {projects
                   .sort((a, b) =>
                     sortBy === 'newest'
                       ? b.createdAt - a.createdAt
@@ -175,19 +177,19 @@ export const Browse: FC = () => {
                       ? a.createdAt - b.createdAt
                       : a.title.localeCompare(b.title)
                   )
-                  .map((component, index) => (
-                    <Grid item key={component.id} lg={4} md={6} sm={12}>
+                  .map((project, index) => (
+                    <Grid item key={project.id} lg={4} md={6} sm={12}>
                       <Stack alignItems="center" direction="row" mb={1} gap={1}>
                         <ExternalLink
-                          href={`https://github.com/${component.username}`}
+                          href={`https://github.com/${project.username}`}
                         >
                           <Avatar
-                            src={component.avatar}
+                            src={project.avatar}
                             sx={{ width: 24, height: 24 }}
                           />
                         </ExternalLink>
                         <Typography variant="body2" style={{ color: 'black' }}>
-                          {component.title}
+                          {project.title}
                         </Typography>
                       </Stack>
                       <Stack
@@ -203,17 +205,29 @@ export const Browse: FC = () => {
                           height: '250px',
                         }}
                       >
-                        <img
-                          src={component.image}
-                          style={{
-                            objectFit: 'cover',
-                            objectPosition: 'center top',
-                          }}
-                          width="100%"
-                          height="100%"
-                        />
+                        {project.imageUrl ? (
+                          <img
+                            src={project.imageUrl}
+                            style={{
+                              objectFit: 'cover',
+                              objectPosition: 'center top',
+                            }}
+                            width="100%"
+                            height="100%"
+                          />
+                        ) : (
+                          <Stack
+                            alignItems="center"
+                            height="100%"
+                            justifyContent="center"
+                          >
+                            <Typography variant="body2">
+                              Preview not available
+                            </Typography>
+                          </Stack>
+                        )}
                         <a
-                          href={`/code/${component.id}`}
+                          href={`/code/${project.slug}`}
                           style={{
                             background: 'none',
                             border: 'none',

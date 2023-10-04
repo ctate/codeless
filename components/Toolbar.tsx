@@ -34,6 +34,7 @@ import { useSession } from 'next-auth/react'
 import { Tips } from './Toolbar/Tips'
 import { ExternalLink } from './ExternalLink'
 import { SnippetButton } from './Toolbar/SnippetButton'
+import { HistoryButton } from './Toolbar/HistoryButton'
 
 export const Toolbar: FC = () => {
   const onlySmallScreen = useMediaQuery('(max-width:599px)')
@@ -80,7 +81,6 @@ export const Toolbar: FC = () => {
   const setText = useCodelessStore((state) => state.setText)
 
   const versions = useCodelessStore((state) => state.versions)
-  const setVersions = useCodelessStore((state) => state.setVersions)
 
   const {
     data,
@@ -97,7 +97,7 @@ export const Toolbar: FC = () => {
   const formRef = useRef<HTMLFormElement>(null)
 
   const handleFix = async () => {
-    await fetch(`/api/code/fixScreenshots`, {
+    await fetch(`/api/project/fixScreenshots`, {
       method: 'POST',
     })
   }
@@ -113,7 +113,7 @@ export const Toolbar: FC = () => {
       try {
         const res = await axios({
           method: 'POST',
-          url: '/api/code/changeSnippet',
+          url: '/api/project/changeSnippet',
           data: {
             code: snippet,
             prompt: text,
@@ -138,9 +138,6 @@ export const Toolbar: FC = () => {
       })
       if (!userRes.data.user) {
         setDialogType('user')
-        return
-      } else if (!userRes.data.hasStarred) {
-        setDialogType('star')
         return
       }
     }
@@ -171,17 +168,18 @@ export const Toolbar: FC = () => {
 
     const codeRes = await axios({
       method: 'POST',
-      url: '/api/code/createCode',
+      url: '/api/project/createProject',
       data: {
         prompt: text,
       },
     })
     const codeData = codeRes.data as {
-      id: string
+      id: number
+      slug: string
     }
     setId(codeData.id)
 
-    history.pushState({}, '', codeData.id)
+    history.pushState({}, '', `code/${codeData.slug}`)
 
     const newMessages = messages.slice()
     newMessages.push({
@@ -223,9 +221,8 @@ export const Toolbar: FC = () => {
       setHistory(latestData.history)
       setNumberOfSteps(latestData.history.length)
       setStep(latestData.currentStep)
-      setVersions(latestData.versions)
     }
-  }, [data, setHistory, setMessages, setNumberOfSteps, setStep, setVersions])
+  }, [data, setHistory, setMessages, setNumberOfSteps, setStep])
 
   useEffect(() => {
     setInput(text)
@@ -238,12 +235,13 @@ export const Toolbar: FC = () => {
   }, [chatIsLoading, setIsLoading])
 
   useEffect(() => {
-    if (!versions[codeHistory[step]]) {
+    const version = versions.find((v) => v.number === codeHistory[step])
+    if (!version) {
       return
     }
 
     setMessages(
-      versions[codeHistory[step]].messages.map((message) => ({
+      version.messages.map((message) => ({
         ...message,
         id: nanoid(),
       }))
@@ -278,6 +276,7 @@ export const Toolbar: FC = () => {
           <div>
             <UndoButton />
             <RedoButton />
+            <HistoryButton />
             <ReloadButton />
           </div>
         )}
@@ -361,7 +360,7 @@ export const Toolbar: FC = () => {
           <Button sx={{ color: 'white' }} onClick={handleFix}>
             <Stack alignItems="center" direction="row" gap={1}>
               <AutoFixHigh />
-              Run Fix
+              <Typography textTransform="none" variant="body2">Run Fix</Typography>
             </Stack>
           </Button>
         )}

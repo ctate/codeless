@@ -9,13 +9,13 @@ export default function CodePage({
   params,
 }: {
   params: {
-    id: string
+    slug: string
   }
 }) {
   const load = useCodelessStore((state) => state.load)
 
   useEffect(() => {
-    load(params.id)
+    load(params.slug)
   }, [load, params])
 
   return (

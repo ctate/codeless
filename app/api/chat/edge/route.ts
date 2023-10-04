@@ -3,12 +3,15 @@ import {
   StreamingTextResponse,
   experimental_StreamData,
 } from 'ai'
-import { kv } from '@vercel/kv'
 import OpenAI from 'openai'
 import { Chat } from 'openai/resources/index'
 import { NextRequest, NextResponse } from 'next/server'
 import { ChatCompletionMessage } from 'openai/resources/chat/index.mjs'
 import { cleanHtml } from '@/utils/cleanHtml'
+import { db } from '@/lib/db'
+import { put } from '@vercel/blob'
+import { nanoid } from 'nanoid'
+import { kv } from '@vercel/kv'
 
 export const runtime = 'edge'
 
@@ -22,9 +25,28 @@ export async function POST(req: NextRequest) {
     messages: previousMessages,
     step = 0,
   } = (await req.json()) as {
-    id: string
+    id: number
     messages: Chat.ChatCompletionMessage[]
     step?: number
+  }
+
+  const userRes = await fetch(`${process.env.NEXTAUTH_URL}/api/user/getUser`, {
+    method: 'POST',
+    headers: {
+      cookie: req.headers.get('cookie')!,
+    },
+  })
+  const userData = (await userRes.json()) as {
+    isAdmin: boolean
+    user: {
+      id: number
+      name: string
+      email: string
+      image: string
+    }
+  }
+  if (!userData.user) {
+    return NextResponse.json({}, { status: 401 })
   }
 
   const messages: ChatCompletionMessage[] = [
@@ -42,14 +64,11 @@ export async function POST(req: NextRequest) {
   if (userMessages.length === 1) {
     messages.push(userMessages[0])
   } else {
-    messages.push(
-      ...userMessages,
-      {
-        role: 'system',
-        content:
-          'Use the HTML from the assistant\'s latest response and make changes to it to fulfill the user\'s latest prompt. Do not use the "alert" function. Do not provide an explanation, only code. Do not use any markdown. Return the full HTML.',
-      }
-    )
+    messages.push(...userMessages, {
+      role: 'system',
+      content:
+        'Use the HTML from the assistant\'s latest response and make changes to it to fulfill the user\'s latest prompt. Do not use the "alert" function. Do not provide an explanation, only code. Do not use any markdown. Return the full HTML.',
+    })
   }
 
   const lastAssitanceMessage = previousMessages.findLast(
@@ -59,44 +78,19 @@ export async function POST(req: NextRequest) {
     messages.splice(messages.length - 2, 0, lastAssitanceMessage)
   }
 
-  // component doesn't exist
-  const code = await kv.hgetall<{
-    currentStep: number
-    history: number[]
-    latestStep: number
-    user: string
-    versions: Array<{
-      code: string
-      messages: Array<{
-        content: string
-        role: string
-      }>
-    }>
-  }>(id)
-  if (!code) {
-    return NextResponse.json({}, { status: 409 })
+  // project doesn't exist
+  const project = await db
+    .selectFrom('projects')
+    .select(['id', 'latestVersion', 'ownerUserId'])
+    .where('id', '=', id)
+    .executeTakeFirst()
+  if (!project) {
+    return NextResponse.json({}, { status: 404 })
   }
 
   // user not authenticated
-  const userRes = await fetch(`${process.env.NEXTAUTH_URL}/api/user/getUser`, {
-    method: 'POST',
-    headers: {
-      cookie: req.headers.get('cookie')!,
-    },
-  })
-  const userData = (await userRes.json()) as {
-    hasStarred: boolean
-    isAdmin: boolean
-    user: {
-      name: string
-      email: string
-      image: string
-    }
-  }
-  if (!userData.user || !userData.hasStarred) {
-    return NextResponse.json({}, { status: 401 })
-  } else if (
-    userData.user.email !== code.user &&
+  if (
+    userData.user.id !== project.ownerUserId &&
     userData.user.email !== process.env.ADMIN_USER
   ) {
     return NextResponse.json({}, { status: 403 })
@@ -119,16 +113,17 @@ export async function POST(req: NextRequest) {
       message += token
     },
     async onFinal() {
-      const newHistory = code.history.slice(0, step + 1)
-
-      const newData = {
-        currentStep: newHistory.length,
-        history: newHistory.concat(code.versions.length),
-        latestStep: newHistory.length,
-        user: userData.user.email,
-        versions: code.versions.concat({
-          code: cleanHtml(message),
-          messages: messages
+      const { url: codeUrl } = await put(
+        `projects/${project.id}/code/${nanoid()}.html`,
+        cleanHtml(message),
+        {
+          access: 'public',
+        }
+      )
+      const { url: messagesUrl } = await put(
+        `projects/${project.id}/messages/${nanoid()}.json`,
+        JSON.stringify(
+          messages
             .filter((message) => message.role === 'user')
             .map((message) => ({
               content: message.content!,
@@ -140,22 +135,60 @@ export async function POST(req: NextRequest) {
                 role: 'assistant',
               },
             ]),
-        }),
-      }
+          null,
+          2
+        ),
+        {
+          access: 'public',
+        }
+      )
 
-      await kv.hset(id, newData)
+      const latestVersion = project.latestVersion + 1
+
+      await db
+        .updateTable('projects')
+        .set({
+          latestVersion,
+        })
+        .where('id', '=', project.id)
+        .execute()
+
+      await db
+        .insertInto('projectVersions')
+        .values({
+          projectId: project.id,
+          number: latestVersion,
+          prompt: userMessages.slice(-1)[0].content!,
+          codeUrl,
+          imageUrl: '',
+          messagesUrl,
+        })
+        .execute()
+
+      const existingHistory =
+        (await kv.get<number[]>(`/projects/${project.id}/history`)) || []
+      const updatedHistory = existingHistory.concat(latestVersion)
+
+      await kv.set(`/projects/${project.id}/history`, updatedHistory)
+
+      const newData = {
+        currentStep: updatedHistory.length,
+        history: updatedHistory,
+        latestStep: updatedHistory.length,
+        user: userData.user.email,
+      }
 
       data.append(newData)
 
-      await fetch(`${process.env.NEXTAUTH_URL}/api/code/screenshotCode`, {
+      await fetch(`${process.env.NEXTAUTH_URL}/api/project/screenshotCode`, {
         method: 'POST',
         headers: {
           cookie: req.headers.get('cookie')!,
           'content-type': 'application/json',
         },
         body: JSON.stringify({
-          id,
-          dataUrl: 'data:text/html;charset=utf-8,' + escape(message),
+          projectId: id,
+          versionNumber: latestVersion
         }),
       })
 

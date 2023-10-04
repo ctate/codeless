@@ -8,10 +8,13 @@ type Mode = '' | 'local' | 'demo'
 type Model = 'gpt-3.5-turbo' | 'gpt-4'
 type Version = {
   code: string
+  imageUrl: string
   messages: Array<{
     content: string
     role: ChatCompletionRole
   }>
+  number: number
+  prompt: string
 }
 
 export interface CodelessState {
@@ -27,8 +30,8 @@ export interface CodelessState {
   history: number[]
   setHistory: (history: number[]) => void
 
-  id: string
-  setId: (id: string) => void
+  id: number
+  setId: (id: number) => void
 
   isInitialized: boolean
   setIsInitialized: (isInitialized: boolean) => void
@@ -57,6 +60,9 @@ export interface CodelessState {
   showComponents: boolean
   setShowComponents: (showComponents: boolean) => void
 
+  slug: string
+  setSlug: (slug: string) => void
+
   snippet: string
   setSnippet: (snippet: string) => void
 
@@ -79,7 +85,7 @@ export interface CodelessState {
   setVersions: (versions: Version[]) => void
 
   init: () => Promise<void>
-  load: (id: string) => Promise<void>
+  load: (slug: string) => Promise<void>
 
   reset: () => void
 }
@@ -97,7 +103,7 @@ export const createCodelessSlice: StateCreator<CodelessState> = (set) => ({
   history: [],
   setHistory: (history) => set(() => ({ history })),
 
-  id: '',
+  id: 0,
   setId: (id) => set(() => ({ id })),
 
   isInitialized: false,
@@ -127,6 +133,9 @@ export const createCodelessSlice: StateCreator<CodelessState> = (set) => ({
   showComponents: false,
   setShowComponents: (showComponents) => set(() => ({ showComponents })),
 
+  slug: '',
+  setSlug: (slug) => set(() => ({ slug })),
+
   snippet: '',
   setSnippet: (snippet) => set(() => ({ snippet })),
 
@@ -150,7 +159,7 @@ export const createCodelessSlice: StateCreator<CodelessState> = (set) => ({
 
   init: async () => {
     set({
-      id: '',
+      id: 0,
     })
 
     const hasApiKeyRes = await axios({
@@ -179,7 +188,7 @@ export const createCodelessSlice: StateCreator<CodelessState> = (set) => ({
     })
   },
 
-  load: async (id: string) => {
+  load: async (slug) => {
     const hasApiKeyRes = await axios({
       method: 'POST',
       url: '/api/chat/hasApiKey',
@@ -200,28 +209,33 @@ export const createCodelessSlice: StateCreator<CodelessState> = (set) => ({
 
     const codeRes = await axios({
       method: 'POST',
-      url: '/api/code/getCode',
+      url: '/api/project/getProject',
       data: {
-        id: `code/${id}`,
+        slug,
       },
     })
     const codeData = codeRes.data as {
-      id: string
+      id: number
       currentStep: number
       history: number[]
-      latestStep: -1
+      latestStep: number
+      slug: string
       user: string
       versions: Array<{
         code: string
+        imageUrl: string
         messages: Array<{
           content: string
           role: ChatCompletionRole
         }>
+        number: number
+        prompt: string
       }>
     }
-
     set({
-      code: codeData.versions[codeData.history[codeData.currentStep]].code,
+      code: codeData.versions.find(
+        (v) => v.number === codeData.history[codeData.currentStep]
+      )?.code,
       isInitialized: true,
       hasApiKey: hasApiKeyRes.data.hasApiKey,
       history: codeData.history,
@@ -229,6 +243,7 @@ export const createCodelessSlice: StateCreator<CodelessState> = (set) => ({
       mode: modeRes.data.mode || 'local',
       model: settingsRes.data.value || 'gpt-3.5-turbo',
       numberOfSteps: codeData.history.length,
+      slug: codeData.slug,
       step: codeData.currentStep,
       versions: codeData.versions,
     })

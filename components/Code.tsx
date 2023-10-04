@@ -23,7 +23,7 @@ export const Code: FC = () => {
   const handleCodeUpdate = async () => {
     await axios({
       method: 'POST',
-      url: '/api/code/updateCode',
+      url: '/api/project/updateProject',
       data: {
         id,
         code: manualCode,

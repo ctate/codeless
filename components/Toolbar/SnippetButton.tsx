@@ -4,6 +4,8 @@ import { IconButton, Tooltip } from '@mui/material'
 import { FC } from 'react'
 
 export const SnippetButton: FC = () => {
+  const isLoading = useCodelessStore((state) => state.isLoading)
+
   const snippetIsEnabled = useCodelessStore((state) => state.snippetIsEnabled)
   const setSnippetIsEnabled = useCodelessStore(
     (state) => state.setSnippetIsEnabled
@@ -11,8 +13,15 @@ export const SnippetButton: FC = () => {
 
   return (
     <Tooltip title="Select Element">
-      <IconButton onClick={() => setSnippetIsEnabled(!snippetIsEnabled)}>
-        <AdsClickIcon sx={{ color: snippetIsEnabled ? 'blue' : 'white' }} />
+      <IconButton
+        disabled={isLoading}
+        onClick={() => setSnippetIsEnabled(!snippetIsEnabled)}
+      >
+        <AdsClickIcon
+          sx={{
+            color: isLoading ? 'gray' : snippetIsEnabled ? 'blue' : 'white',
+          }}
+        />
       </IconButton>
     </Tooltip>
   )

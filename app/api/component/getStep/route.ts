@@ -9,7 +9,7 @@ interface Request {
 }
 
 interface Settings {
-  id: string
+  id: number
   content: string
   role: string
   createdAt: string
