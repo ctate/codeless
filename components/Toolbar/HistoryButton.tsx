@@ -2,6 +2,7 @@ import { useCodelessStore } from '@/stores/codeless'
 import {
   BrowseGallery as BrowseGalleryIcon,
   Close as CloseIcon,
+  Refresh,
 } from '@mui/icons-material'
 import {
   Box,
@@ -16,9 +17,12 @@ import {
   useMediaQuery,
 } from '@mui/material'
 import axios from 'axios'
-import { FC, useEffect, useState } from 'react'
+import { FC, MouseEvent, useEffect, useState } from 'react'
+import { useSession } from 'next-auth/react'
 
 export const HistoryButton: FC = () => {
+  const { data: session } = useSession()
+
   const onlySmallScreen = useMediaQuery('(max-width:599px)')
 
   const history = useCodelessStore((state) => state.history)
@@ -43,6 +47,25 @@ export const HistoryButton: FC = () => {
 
   const [isDisabled, setIsDiabled] = useState(false)
   const [showVersions, setShowVersions] = useState(false)
+
+  const handleRefreshScreenshot = async (e: MouseEvent, number: number) => {
+    e.stopPropagation()
+
+    setIsLoading(true)
+
+    await axios({
+      method: 'POST',
+      url: '/api/project/refreshScreenshot',
+      data: {
+        projectId: id,
+        versionNumber: number,
+      },
+    })
+
+    await load(slug)
+
+    setIsLoading(false)
+  }
 
   const handleVersion = async (number: number) => {
     setShowVersions(false)
@@ -135,6 +158,7 @@ export const HistoryButton: FC = () => {
                       </button>
                     ) : (
                       <button
+                        disabled={isLoading}
                         onClick={() => handleVersion(version.number)}
                         style={{ border: 'none', cursor: 'pointer' }}
                       >
@@ -161,7 +185,13 @@ export const HistoryButton: FC = () => {
                     )}
                     {(history.slice(-1)[0] === version.number ||
                       history[step] === version.number) && (
-                      <Stack direction="row" position="absolute" right={10} top={10} gap={1}>
+                      <Stack
+                        direction="row"
+                        position="absolute"
+                        right={10}
+                        top={10}
+                        gap={1}
+                      >
                         {history[step] === version.number && (
                           <Chip
                             label="Selected"
@@ -177,6 +207,21 @@ export const HistoryButton: FC = () => {
                             variant="outlined"
                           />
                         )}
+                      </Stack>
+                    )}
+                    {session?.user?.email ===
+                      process.env.NEXT_PUBLIC_ADMIN_USER && (
+                      <Stack bottom={10} position="absolute" right={10}>
+                        <IconButton
+                          disabled={isLoading}
+                          onClick={(e) =>
+                            handleRefreshScreenshot(e, version.number)
+                          }
+                        >
+                          <Refresh
+                            sx={{ color: isLoading ? 'gray' : 'black' }}
+                          />
+                        </IconButton>
                       </Stack>
                     )}
                   </Stack>
