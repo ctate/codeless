@@ -180,7 +180,7 @@ export async function POST(req: NextRequest) {
 
       data.append(newData)
 
-      await fetch(`${process.env.CODELESS_API_URL}/screenshot`, {
+      fetch(`${process.env.CODELESS_API_URL}/screenshot`, {
         method: 'POST',
         headers: {
           cookie: req.headers.get('cookie')!,
