@@ -1,6 +1,7 @@
 import { useCodelessStore } from '@/stores/codeless'
 import { Apps } from '@mui/icons-material'
 import {
+  Button,
   Container,
   Grid,
   Stack,
@@ -11,17 +12,26 @@ import { FC } from 'react'
 
 const featuredCode = [
   {
-    id: 'trivia-game-1695828100712',
+    id: 'earth-trivia',
+    name: 'Earth Trivia',
     image:
       'https://43fzijkfwg2zmvr5.public.blob.vercel-storage.com/code/trivia-game-1695828100712-fNApDbJPHD6VewEn2k9MfORRdvhCRC',
   },
   {
-    id: 'twinkling-stars-1695819029214',
+    id: 'slithering-serpent',
+    name: 'Slithering Serpent',
+    image:
+      'https://43fzijkfwg2zmvr5.public.blob.vercel-storage.com/projects/273/versions/2/screenshot-Un5fEH1aZW5drHXv6VzIhJ1s3Q2hPd.png',
+  },
+  {
+    id: 'twinkling-stars',
+    name: 'Twinkling Stars',
     image:
       'https://43fzijkfwg2zmvr5.public.blob.vercel-storage.com/code/twinkling-stars-1695819029214-8Ys4DzdJ4qDn0917YQz64HSWg7ciMa',
   },
   {
-    id: 'working-calculator-1695837997818',
+    id: 'calculator',
+    name: 'Calculator',
     image:
       'https://43fzijkfwg2zmvr5.public.blob.vercel-storage.com/code/working-calculator-1695837997818-Q7BOn01OwR9mREDdS7s29VWJ3H52Oe',
   },
@@ -61,9 +71,20 @@ export const Featured: FC = () => {
     >
       <Container maxWidth="md">
         <Stack mt={2}>
-          <Typography gutterBottom variant="h5">
-            Featured
-          </Typography>
+          <Stack direction="row" justifyContent="space-between">
+            <Typography gutterBottom variant="h5">
+              Featured
+            </Typography>
+
+            <Button onClick={() => setShowComponents(true)}>
+              <Stack alignItems="center" direction="row" gap={1}>
+                <Typography textTransform="none" sx={{ color: 'white' }}>
+                  Browse All
+                </Typography>
+                <Apps sx={{ color: 'white' }} />
+              </Stack>
+            </Button>
+          </Stack>
           <Grid container spacing={2}>
             {featuredCode.map((featured) => (
               <Grid item sm={3} xs={12} key={featured.id}>
@@ -101,49 +122,15 @@ export const Featured: FC = () => {
                     }}
                   />
                 </Stack>
+                <Typography
+                  mt={1}
+                  textAlign="center"
+                  variant="body2"
+                >
+                  {featured.name}
+                </Typography>
               </Grid>
             ))}
-            <Grid item sm={3} xs={12}>
-              <Stack
-                sx={{
-                  '&:hover': {
-                    border: '1px #666 solid',
-                  },
-                  border: '1px #333 solid',
-                  borderRadius: '5px',
-                  overflow: 'hidden',
-                  position: 'relative',
-                  height: onlySmallScreen ? '240px' : '140px',
-                }}
-              >
-                <button
-                  onClick={() => setShowComponents(true)}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: 'white',
-                    cursor: 'pointer',
-                    position: 'absolute',
-                    left: 0,
-                    right: 0,
-                    top: 0,
-                    bottom: 0,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    textAlign: 'center',
-                    width: '100%',
-                    height: '100%',
-                  }}
-                >
-                  <Stack alignItems="center" justifyContent="center" gap={0.5}>
-                    <Apps sx={{ fontSize: '64px' }} />
-                    <span>Browse All</span>
-                  </Stack>
-                </button>
-              </Stack>
-            </Grid>
           </Grid>
         </Stack>
       </Container>
