@@ -173,9 +173,7 @@ export async function POST(req: NextRequest) {
 
       await kv.set(`projects/${project.id}/history`, updatedHistory)
 
-      console.log(`${process.env.CODELESS_API_URL}/screenshot`);
-
-      await fetch(`${process.env.CODELESS_API_URL}/screenshot`, {
+      await fetch(`/api/project/refreshScreenshot`, {
         method: 'POST',
         headers: {
           cookie: req.headers.get('cookie')!,
