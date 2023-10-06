@@ -167,9 +167,23 @@ export async function POST(req: NextRequest) {
 
       const existingHistory =
         (await kv.get<number[]>(`projects/${project.id}/history`)) || []
-      const updatedHistory = existingHistory.slice(0, step + 1).concat(latestVersion)
+      const updatedHistory = existingHistory
+        .slice(0, step + 1)
+        .concat(latestVersion)
 
       await kv.set(`projects/${project.id}/history`, updatedHistory)
+
+      await fetch(`${process.env.CODELESS_API_URL}/screenshot`, {
+        method: 'POST',
+        headers: {
+          cookie: req.headers.get('cookie')!,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          projectId: id,
+          versionNumber: latestVersion,
+        }),
+      })
 
       const newData = {
         currentStep: updatedHistory.length,
@@ -179,19 +193,6 @@ export async function POST(req: NextRequest) {
       }
 
       data.append(newData)
-
-      fetch(`${process.env.CODELESS_API_URL}/screenshot`, {
-        method: 'POST',
-        headers: {
-          cookie: req.headers.get('cookie')!,
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({
-          projectId: id,
-          versionNumber: latestVersion
-        }),
-      })
-
       data.close()
     },
     experimental_streamData: true,
