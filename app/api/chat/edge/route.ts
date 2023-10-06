@@ -173,7 +173,17 @@ export async function POST(req: NextRequest) {
 
       await kv.set(`projects/${project.id}/history`, updatedHistory)
 
-      await fetch(`${process.env.NEXTAUTH_URL}/api/project/refreshScreenshot`, {
+      const newData = {
+        currentStep: updatedHistory.length,
+        history: updatedHistory,
+        latestStep: updatedHistory.length,
+        user: userData.user.email,
+      }
+
+      data.append(newData)
+      data.close()
+
+      fetch(`${process.env.NEXTAUTH_URL}/api/project/refreshScreenshot`, {
         method: 'POST',
         headers: {
           cookie: req.headers.get('cookie')!,
@@ -184,16 +194,6 @@ export async function POST(req: NextRequest) {
           versionNumber: latestVersion,
         }),
       })
-
-      const newData = {
-        currentStep: updatedHistory.length,
-        history: updatedHistory,
-        latestStep: updatedHistory.length,
-        user: userData.user.email,
-      }
-
-      data.append(newData)
-      data.close()
     },
     experimental_streamData: true,
   })

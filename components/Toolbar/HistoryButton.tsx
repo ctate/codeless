@@ -92,6 +92,10 @@ export const HistoryButton: FC = () => {
     setIsDiabled(isLoading || isSaving || !numberOfSteps)
   }, [isLoading, isSaving, numberOfSteps])
 
+  useEffect(() => {
+    load(slug)
+  }, [load, showVersions, slug])
+
   return (
     <>
       <Tooltip title="History">
