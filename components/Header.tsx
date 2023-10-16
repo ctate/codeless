@@ -1,5 +1,6 @@
 import {
   ArrowRight,
+  ForkRight,
   OpenInNew as OpenInNewIcon,
   Star,
 } from '@mui/icons-material'
@@ -27,6 +28,7 @@ import { useCodelessStore } from '@/stores/codeless'
 
 import { ExternalLink } from './ExternalLink'
 import axios from 'axios'
+import Link from 'next/link'
 
 export const Header: FC = () => {
   const onlySmallScreen = useMediaQuery('(max-width:599px)')
@@ -34,6 +36,8 @@ export const Header: FC = () => {
   const { data: session } = useSession()
 
   const id = useCodelessStore((state) => state.id)
+
+  const forkedProject = useCodelessStore((state) => state.forkedProject)
 
   const isStarred = useCodelessStore((state) => state.isStarred)
 
@@ -51,6 +55,7 @@ export const Header: FC = () => {
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const open = Boolean(anchorEl)
+  const [isForking, setIsForking] = useState(false)
   const [isStarring, setIsStarring] = useState(false)
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -59,6 +64,22 @@ export const Header: FC = () => {
 
   const handleClose = () => {
     setAnchorEl(null)
+  }
+
+  const handleFork = async (projectId: number) => {
+    setIsForking(true)
+
+    const res = await axios({
+      method: 'POST',
+      url: '/api/project/forkProject',
+      data: {
+        id: projectId,
+      },
+    })
+
+    window.location.href = `/code/${res.data.slug}`
+
+    setIsForking(false)
   }
 
   const handleLogout = () => {
@@ -119,21 +140,51 @@ export const Header: FC = () => {
           {user.username.length > 0 && (
             <>
               <Avatar src={user.imageUrl} sx={{ width: 24, height: 24 }} />
-              <Typography
-                component="h1"
-                overflow="hidden"
-                textOverflow="ellipsis"
-                whiteSpace="nowrap"
-                variant="h6"
-              >
-                {name}
-              </Typography>
+              <Stack>
+                <Typography
+                  component="h1"
+                  overflow="hidden"
+                  textOverflow="ellipsis"
+                  whiteSpace="nowrap"
+                  variant="h6"
+                >
+                  {name}
+                </Typography>
+                {!!forkedProject && (
+                  <Typography variant="body2" sx={{ color: 'gray' }}>
+                    Forked from{' '}
+                    <Link href={`/code/${forkedProject.slug}`}>
+                      {forkedProject.name}
+                    </Link>
+                  </Typography>
+                )}
+              </Stack>
             </>
           )}
         </Stack>
         <Stack alignItems="center" direction="row" gap={2}>
           {!!slug && (
             <>
+              {isForking ? (
+                <Stack
+                  alignItems="center"
+                  height={40}
+                  justifyContent="center"
+                  width={40}
+                >
+                  <CircularProgress
+                    size={24}
+                    sx={{
+                      color: 'white',
+                    }}
+                  />
+                </Stack>
+              ) : (
+                <IconButton disableRipple onClick={() => handleFork(id)}>
+                  <Typography sx={{ color: 'white' }}>Fork</Typography>
+                  <ForkRight sx={{ color: 'gray' }} />
+                </IconButton>
+              )}
               {isStarring ? (
                 <Stack
                   alignItems="center"
@@ -144,7 +195,7 @@ export const Header: FC = () => {
                   <CircularProgress size={24} sx={{ color: 'white' }} />
                 </Stack>
               ) : (
-                <Stack alignItems="center" direction="row" ml={2}>
+                <Stack alignItems="center" direction="row">
                   <Typography>{starCount}</Typography>
                   <IconButton onClick={handleStar}>
                     <Star sx={{ color: isStarred ? 'orange' : 'gray' }} />

@@ -8,6 +8,7 @@ export interface ProjectsTable {
   name: string
   slug: string
   starCount?: number
+  forkedProjectId?: number
   ownerUserId: number
   createdAt: ColumnType<Date, string | undefined, never>
 }
@@ -21,6 +22,7 @@ export const createProjectsTable = async () => {
     .addColumn('name', 'varchar(255)', (cb) => cb.notNull())
     .addColumn('slug', 'varchar(255)', (cb) => cb.notNull().unique())
     .addColumn('starCount', 'integer', (cb) => cb.notNull().defaultTo(0))
+    .addColumn('forkedProjectId', 'integer')
     .addColumn('ownerUserId', 'integer', (cb) => cb.notNull())
     .addColumn('createdAt', sql`timestamp with time zone`, (cb) =>
       cb.defaultTo(sql`current_timestamp`)

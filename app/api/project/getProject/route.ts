@@ -40,13 +40,29 @@ export async function POST(req: NextRequest) {
 
   const project = await db
     .selectFrom('projects')
-    .select(['id', 'latestVersion', 'name', 'slug', 'starCount', 'ownerUserId'])
+    .select([
+      'id',
+      'forkedProjectId',
+      'latestVersion',
+      'name',
+      'slug',
+      'starCount',
+      'ownerUserId',
+    ])
     .where('slug', '=', slug)
     .executeTakeFirst()
 
   if (!project) {
     return NextResponse.json({}, { status: 404 })
   }
+
+  const forkedProject = project.forkedProjectId
+    ? await db
+        .selectFrom('projects')
+        .select(['id', 'name', 'slug'])
+        .where('id', '=', project.forkedProjectId)
+        .executeTakeFirst()
+    : undefined
 
   const user = await db
     .selectFrom('users')
@@ -99,6 +115,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     id: project.id,
     currentStep: history.length - 1,
+    forkedProject,
     history,
     imageUrl:
       versions.find((v) => v.number === project.latestVersion)?.imageUrl || '',

@@ -1,4 +1,4 @@
-import { Close, Star } from '@mui/icons-material'
+import { Close, ForkLeft, ForkRight, Star } from '@mui/icons-material'
 import {
   Avatar,
   Button,
@@ -42,11 +42,32 @@ export const Browse: FC = () => {
   const [isInitialized, setIsInitialized] = useState(false)
   const [isLoadingBrowse, setIsLoadingBrowse] = useState(false)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [loadingForks, setLoadingForks] = useState<number[]>([])
   const [loadingStars, setLoadingStars] = useState<number[]>([])
   const [page, setPage] = useState(1)
   const [sortBy, setSortBy] = useState<'stars' | 'newest' | 'oldest' | 'name'>(
     'stars'
   )
+
+  const handleFork = async (projectId: number) => {
+    if (loadingForks.includes(projectId)) {
+      return
+    }
+
+    setLoadingForks(loadingForks.concat(projectId))
+
+    const res = await axios({
+      method: 'POST',
+      url: '/api/project/forkProject',
+      data: {
+        id: projectId,
+      },
+    })
+
+    window.location.href = `/code/${res.data.slug}`
+
+    setLoadingForks(loadingForks.splice(loadingForks.indexOf(projectId), 1))
+  }
 
   const handleLoadComponent = async (project: string) => {
     setShowComponents(false)
@@ -291,13 +312,43 @@ export const Browse: FC = () => {
                       >
                         {project.title}
                       </Typography>
+                      {loadingForks.indexOf(project.id) !== -1 ? (
+                        <Stack
+                          alignItems="center"
+                          height={40}
+                          justifyContent="center"
+                          width={40}
+                        >
+                          <CircularProgress
+                            size={24}
+                            sx={{
+                              color: 'black',
+                            }}
+                          />
+                        </Stack>
+                      ) : (
+                        <IconButton
+                          disableRipple
+                          onClick={() => handleFork(project.id)}
+                        >
+                          <Typography>Fork</Typography>
+                          <ForkRight />
+                        </IconButton>
+                      )}
                       {loadingStars.indexOf(project.id) !== -1 ? (
-                        <CircularProgress
-                          size={40}
-                          sx={{
-                            color: 'black',
-                          }}
-                        />
+                        <Stack
+                          alignItems="center"
+                          height={40}
+                          justifyContent="center"
+                          width={40}
+                        >
+                          <CircularProgress
+                            size={24}
+                            sx={{
+                              color: 'black',
+                            }}
+                          />
+                        </Stack>
                       ) : (
                         <Stack alignItems="center" direction="row">
                           <Typography>{project.starCount}</Typography>

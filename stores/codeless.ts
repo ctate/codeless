@@ -4,6 +4,11 @@ import { StateCreator, create } from 'zustand'
 
 type AppState = CodelessState
 
+interface ForkedProject {
+  id: number
+  name: string
+  slug: string
+}
 type Mode = '' | 'local' | 'demo'
 type Model = 'gpt-3.5-turbo' | 'gpt-4'
 type Version = {
@@ -27,6 +32,9 @@ export interface CodelessState {
 
   dialogType: '' | 'user' | 'star'
   setDialogType: (dialogType: '' | 'user' | 'star') => void
+
+  forkedProject?: ForkedProject
+  setForkedProject: (forkedProject?: ForkedProject) => void
 
   hasApiKey: boolean
   setHasApiKey: (hasApiKey: boolean) => void
@@ -109,6 +117,9 @@ export const createCodelessSlice: StateCreator<CodelessState> = (set) => ({
 
   dialogType: '',
   setDialogType: (dialogType) => set(() => ({ dialogType })),
+
+  forkedProject: undefined,
+  setForkedProject: (forkedProject) => set(() => ({ forkedProject })),
 
   hasApiKey: false,
   setHasApiKey: (hasApiKey) => set(() => ({ hasApiKey })),
@@ -242,6 +253,11 @@ export const createCodelessSlice: StateCreator<CodelessState> = (set) => ({
     const codeData = codeRes.data as {
       id: number
       currentStep: number
+      forkedProject?: {
+        id: number
+        name: string
+        slug: string
+      }
       history: number[]
       isStarred: boolean
       latestStep: number
@@ -268,6 +284,7 @@ export const createCodelessSlice: StateCreator<CodelessState> = (set) => ({
         (v) => v.number === codeData.history[codeData.currentStep]
       )?.code,
       isInitialized: true,
+      forkedProject: codeData.forkedProject,
       hasApiKey: hasApiKeyRes.data.hasApiKey,
       history: codeData.history,
       id: codeData.id,
