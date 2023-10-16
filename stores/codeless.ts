@@ -46,6 +46,9 @@ export interface CodelessState {
   isSaving: boolean
   setIsSaving: (isSaving: boolean) => void
 
+  isStarred: boolean
+  setIsStarred: (isStarred: boolean) => void
+
   mode: Mode
   setMode: (mode: Mode) => void
 
@@ -78,6 +81,9 @@ export interface CodelessState {
 
   snippetIsEnabled: boolean
   setSnippetIsEnabled: (snippetIsEnabled: boolean) => void
+
+  starCount: number
+  setStarCount: (starCount: number) => void
 
   step: number
   setStep: (step: number) => void
@@ -122,6 +128,9 @@ export const createCodelessSlice: StateCreator<CodelessState> = (set) => ({
   isSaving: false,
   setIsSaving: (isSaving) => set(() => ({ isSaving })),
 
+  isStarred: false,
+  setIsStarred: (isStarred) => set(() => ({ isStarred })),
+
   mode: '',
   setMode: (mode) => set(() => ({ mode })),
 
@@ -154,6 +163,9 @@ export const createCodelessSlice: StateCreator<CodelessState> = (set) => ({
 
   snippetIsEnabled: false,
   setSnippetIsEnabled: (snippetIsEnabled) => set(() => ({ snippetIsEnabled })),
+
+  starCount: 0,
+  setStarCount: (starCount) => set(() => ({ starCount })),
 
   step: 0,
   setStep: (step) => set(() => ({ step })),
@@ -231,9 +243,11 @@ export const createCodelessSlice: StateCreator<CodelessState> = (set) => ({
       id: number
       currentStep: number
       history: number[]
+      isStarred: boolean
       latestStep: number
       name: string
       slug: string
+      starCount: number
       user: {
         imageUrl: string
         username: string
@@ -257,11 +271,13 @@ export const createCodelessSlice: StateCreator<CodelessState> = (set) => ({
       hasApiKey: hasApiKeyRes.data.hasApiKey,
       history: codeData.history,
       id: codeData.id,
+      isStarred: codeData.isStarred,
       mode: modeRes.data.mode || 'local',
       model: settingsRes.data.value || 'gpt-3.5-turbo',
       name: codeData.name,
       numberOfSteps: codeData.history.length,
       slug: codeData.slug,
+      starCount: codeData.starCount,
       step: codeData.currentStep,
       user: codeData.user,
       versions: codeData.versions,

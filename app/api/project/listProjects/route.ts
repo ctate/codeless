@@ -1,46 +1,101 @@
-import { db, deinit, init } from '@/lib/db'
-import { kv } from '@vercel/kv'
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
 
-interface Result {
-  id: number
-  title: string
-  createdAt: number
-  image: string
-  avatar: string
-  username: string
+import { authOptions } from '@/app/auth'
+import { db } from '@/lib/db'
+
+interface Request {
+  limit: number
+  page: number
+  sortBy: 'stars' | 'newest' | 'oldest' | 'name'
 }
 
 export async function POST(req: NextRequest) {
-  // const cache = await kv.hgetall<{ updatedAt: number; results: Result[] }>(
-  //   'cache/listProjects'
-  // )
-  // if (cache && cache.updatedAt + 5 * 60 * 1000 > Date.now()) {
-  //   return NextResponse.json({ code: cache.results })
-  // }
+  const session = await getServerSession(authOptions)
 
-  // await deinit()
-  // await init()
+  const userId = await (async () => {
+    if (!session?.user) {
+      return 0
+    }
 
-  const users = await db
-    .selectFrom('users')
-    .select(['id', 'imageUrl', 'username'])
-    .execute()
+    const user = {
+      image: session.user.image || '',
+      name: session.user.name || '',
+      username: session.user.email,
+    }
+
+    const existingUser = await db
+      .selectFrom('users')
+      .select('id')
+      .where('username', '=', user.username!)
+      .executeTakeFirst()
+    if (existingUser) {
+      return existingUser.id
+    }
+
+    return 0
+  })()
+
+  const { limit, page, sortBy } = (await req.json()) as Request
+
+  if (limit < 1 || limit > 100) {
+    return NextResponse.json({ message: 'Invalid limit' }, { status: 422 })
+  }
+  if (page < 1) {
+    return NextResponse.json({ message: 'Invalid page' }, { status: 422 })
+  }
+  if (!['stars', 'newest', 'oldest', 'name'].includes(sortBy)) {
+    return NextResponse.json({ message: 'Invalid sortBy' }, { status: 422 })
+  }
+
+  const orderByMap: {
+    [name: string]:
+      | 'starCount desc'
+      | 'createdAt desc'
+      | 'createdAt asc'
+      | 'name asc'
+  } = {
+    stars: 'starCount desc',
+    newest: 'createdAt desc',
+    oldest: 'createdAt asc',
+    name: 'name asc',
+  }
+
+  let query = db
+    .selectFrom('projects')
+    .leftJoin('users', 'users.id', 'ownerUserId')
+    .select([
+      'projects.id',
+      'projects.latestVersion',
+      'projects.name',
+      'projects.slug',
+      'projects.starCount',
+      'projects.ownerUserId',
+      'projects.createdAt',
+      'users.imageUrl as avatar',
+      'users.username',
+    ])
+    .offset((page - 1) * limit)
+    .limit(limit)
+    .orderBy(orderByMap[sortBy])
+  if (sortBy === 'stars') {
+    query = query.orderBy('createdAt desc')
+  }
 
   const projects = await Promise.all(
     (
-      await db
-        .selectFrom('projects')
-        .select([
-          'id',
-          'latestVersion',
-          'name',
-          'slug',
-          'ownerUserId',
-          'createdAt',
-        ])
-        .execute()
+      await query.execute()
     ).map(async (project) => {
+      const isStarred = userId
+        ? (
+            await db
+              .selectFrom('projectStars')
+              .where('projectId', '=', project.id)
+              .where('userId', '=', userId)
+              .execute()
+          ).length > 0
+        : false
+
       const version = await db
         .selectFrom('projectVersions')
         .select(['imageUrl'])
@@ -48,23 +103,19 @@ export async function POST(req: NextRequest) {
         .where('number', '=', project.latestVersion)
         .executeTakeFirst()
 
-      const u = users.find((u) => u.id === project.ownerUserId)!
       return {
         id: project.id,
         title: project.name,
         slug: project.slug,
+        starCount: project.starCount,
         createdAt: project.createdAt,
         imageUrl: version?.imageUrl,
-        avatar: u?.imageUrl || '',
-        username: u?.username || '',
+        avatar: project.avatar,
+        username: project.username,
+        isStarred: isStarred,
       }
     })
   )
-
-  // await kv.hset('cache/listProjects', {
-  //   updatedAt: Date.now(),
-  //   results: projects,
-  // })
 
   return NextResponse.json({ code: projects })
 }

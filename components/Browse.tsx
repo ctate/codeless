@@ -1,31 +1,32 @@
-import { useCodelessStore } from '@/stores/codeless'
+import { Close, Star } from '@mui/icons-material'
 import {
   Avatar,
+  Button,
   CircularProgress,
   Container,
   Drawer,
   Grid,
   IconButton,
-  MenuItem,
-  Select,
   Stack,
   Typography,
   useMediaQuery,
 } from '@mui/material'
-import { Message } from 'ai'
 import axios from 'axios'
-import { FC, useEffect, useRef, useState } from 'react'
-import { ExternalLink } from './ExternalLink'
-import { Close } from '@mui/icons-material'
+import { FC, useEffect, useState } from 'react'
 
-interface Component {
+import { ExternalLink } from '@/components/ExternalLink'
+import { useCodelessStore } from '@/stores/codeless'
+
+interface Project {
   id: number
   title: string
   slug: string
+  starCount: number
   createdAt: number
   imageUrl: string
   avatar: string
   username: string
+  isStarred: boolean
 }
 
 export const Browse: FC = () => {
@@ -37,10 +38,15 @@ export const Browse: FC = () => {
   const setIsLoading = useCodelessStore((state) => state.setIsLoading)
   const load = useCodelessStore((state) => state.load)
 
-  const [projects, setComponents] = useState<Component[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
   const [isInitialized, setIsInitialized] = useState(false)
   const [isLoadingBrowse, setIsLoadingBrowse] = useState(false)
-  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'name'>('newest')
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [loadingStars, setLoadingStars] = useState<number[]>([])
+  const [page, setPage] = useState(1)
+  const [sortBy, setSortBy] = useState<'stars' | 'newest' | 'oldest' | 'name'>(
+    'stars'
+  )
 
   const handleLoadComponent = async (project: string) => {
     setShowComponents(false)
@@ -54,23 +60,102 @@ export const Browse: FC = () => {
     setIsLoading(false)
   }
 
+  const handleLoadMore = async () => {
+    setIsLoadingMore(true)
+
+    const newPage = page + 1
+
+    const res = await axios({
+      method: 'POST',
+      url: '/api/project/listProjects',
+      data: {
+        page: newPage,
+        limit: 24,
+        sortBy,
+      },
+    })
+
+    setProjects(
+      projects.concat(
+        res.data.code.map((c: any) => ({
+          id: c.id,
+          title: c.title,
+          slug: c.slug,
+          starCount: c.starCount,
+          createdAt: new Date(c.createdAt),
+          imageUrl: c.imageUrl,
+          avatar: c.avatar,
+          username: c.username,
+          isStarred: c.isStarred,
+        }))
+      )
+    )
+
+    setIsLoadingMore(false)
+    setPage(newPage)
+  }
+
+  const handleStar = async (projectId: number, isStarred: boolean) => {
+    if (loadingStars.includes(projectId)) {
+      return
+    }
+
+    setLoadingStars(loadingStars.concat(projectId))
+
+    try {
+      await axios({
+        method: 'POST',
+        url: '/api/project/starProject',
+        data: {
+          projectId,
+          status: isStarred ? 'unstar' : 'star',
+        },
+      })
+
+      const projectIndex = projects.findIndex((p) => p.id === projectId)
+
+      if (projectIndex > -1) {
+        const res = await axios({
+          method: 'POST',
+          url: '/api/project/getProject',
+          data: {
+            slug: projects[projectIndex].slug,
+          },
+        })
+
+        const updatedProjects = projects.slice()
+        updatedProjects[projectIndex].isStarred = res.data.isStarred
+        setProjects(updatedProjects)
+      }
+    } catch {}
+
+    setLoadingStars(loadingStars.splice(loadingStars.indexOf(projectId), 1))
+  }
+
   const init = async () => {
     setIsLoadingBrowse(true)
 
     const res = await axios({
       method: 'POST',
       url: '/api/project/listProjects',
+      data: {
+        page,
+        limit: 24,
+        sortBy,
+      },
     })
 
-    setComponents(
+    setProjects(
       res.data.code.map((c: any) => ({
         id: c.id,
         title: c.title,
         slug: c.slug,
+        starCount: c.starCount,
         createdAt: new Date(c.createdAt),
         imageUrl: c.imageUrl,
         avatar: c.avatar,
         username: c.username,
+        isStarred: c.isStarred,
       }))
     )
 
@@ -79,10 +164,10 @@ export const Browse: FC = () => {
   }
 
   useEffect(() => {
-    if (showComponents && !isInitialized) {
+    if (showComponents) {
       init()
     }
-  }, [isInitialized, showComponents])
+  }, [showComponents, sortBy])
 
   return (
     <>
@@ -112,6 +197,22 @@ export const Browse: FC = () => {
                 mb={onlySmallScreen ? 4 : 0}
               >
                 <Typography>Sort by:</Typography>
+                <button
+                  onClick={() => setSortBy('stars')}
+                  style={{
+                    background: 'none',
+                    border: 0,
+                    cursor: 'pointer',
+                    padding: 0,
+                    margin: 0,
+                    borderBottom:
+                      sortBy === 'stars'
+                        ? '1px dotted #CCC'
+                        : '1px solid transparent',
+                  }}
+                >
+                  <Typography>Stars</Typography>
+                </button>
                 <button
                   onClick={() => setSortBy('newest')}
                   style={{
@@ -169,86 +270,114 @@ export const Browse: FC = () => {
             )}
             {!isLoadingBrowse && (
               <Grid container spacing={2}>
-                {projects
-                  .sort((a, b) =>
-                    sortBy === 'newest'
-                      ? b.createdAt - a.createdAt
-                      : sortBy === 'oldest'
-                      ? a.createdAt - b.createdAt
-                      : a.title.localeCompare(b.title)
-                  )
-                  .map((project, index) => (
-                    <Grid item key={project.id} lg={4} md={6} sm={12}>
-                      <Stack alignItems="center" direction="row" mb={1} gap={1}>
-                        <ExternalLink
-                          href={`https://github.com/${project.username}`}
-                        >
-                          <Avatar
-                            src={project.avatar}
-                            sx={{ width: 24, height: 24 }}
-                          />
-                        </ExternalLink>
-                        <Typography
-                          variant="body2"
-                          overflow="hidden"
-                          textOverflow="ellipsis"
-                          whiteSpace="nowrap"
-                          style={{ color: 'black' }}
-                        >
-                          {project.title}
-                        </Typography>
-                      </Stack>
-                      <Stack
-                        my={1}
-                        sx={{
-                          '&:hover': {
-                            border: '1px #CCC solid',
-                          },
-                          border: '1px #EEE solid',
-                          borderRadius: '5px',
-                          overflow: 'hidden',
-                          position: 'relative',
-                        }}
+                {projects.map((project, index) => (
+                  <Grid item key={project.id} lg={4} md={6} sm={12}>
+                    <Stack alignItems="center" direction="row" mb={1} gap={1}>
+                      <ExternalLink
+                        href={`https://github.com/${project.username}`}
                       >
-                        {project.imageUrl ? (
-                          <a href={`/code/${project.slug}`}>
-                            <img
-                              src={project.imageUrl}
-                              width="100%"
-                              style={{ display: 'block' }}
+                        <Avatar
+                          src={project.avatar}
+                          sx={{ width: 24, height: 24 }}
+                        />
+                      </ExternalLink>
+                      <Typography
+                        flexGrow={1}
+                        variant="body2"
+                        overflow="hidden"
+                        textOverflow="ellipsis"
+                        whiteSpace="nowrap"
+                        style={{ color: 'black' }}
+                      >
+                        {project.title}
+                      </Typography>
+                      {loadingStars.indexOf(project.id) !== -1 ? (
+                        <CircularProgress
+                          size={40}
+                          sx={{
+                            color: 'black',
+                          }}
+                        />
+                      ) : (
+                        <Stack alignItems="center" direction="row">
+                          <Typography>{project.starCount}</Typography>
+                          <IconButton
+                            disableRipple
+                            onClick={() =>
+                              handleStar(project.id, project.isStarred)
+                            }
+                          >
+                            <Star
+                              sx={{
+                                color: project.isStarred ? 'orange' : null,
+                              }}
                             />
-                          </a>
-                        ) : (
-                          <a href={`/code/${project.slug}`}>
-                            <img
-                              src="/images/screenshot-blank.png"
-                              width="100%"
-                              style={{ display: 'block' }}
-                            />
-                            <Stack
-                              alignItems="center"
-                              height="100%"
-                              justifyContent="center"
-                              position="absolute"
-                              left={0}
-                              right={0}
-                              top={0}
-                              bottom={0}
-                            >
-                              <Typography
-                                variant="body2"
-                                sx={{ color: 'black' }}
-                              >
-                                Preview not available
-                              </Typography>
-                            </Stack>
-                          </a>
-                        )}
-                      </Stack>
-                    </Grid>
-                  ))}
+                          </IconButton>
+                        </Stack>
+                      )}
+                    </Stack>
+                    <Stack
+                      my={1}
+                      sx={{
+                        '&:hover': {
+                          border: '1px #CCC solid',
+                        },
+                        border: '1px #EEE solid',
+                        borderRadius: '5px',
+                        overflow: 'hidden',
+                        position: 'relative',
+                      }}
+                    >
+                      {project.imageUrl ? (
+                        <a href={`/code/${project.slug}`}>
+                          <img
+                            src={project.imageUrl}
+                            width="100%"
+                            style={{ display: 'block' }}
+                          />
+                        </a>
+                      ) : (
+                        <a href={`/code/${project.slug}`}>
+                          <img
+                            src="/images/screenshot-blank.png"
+                            width="100%"
+                            style={{ display: 'block' }}
+                          />
+                          <Stack
+                            alignItems="center"
+                            height="100%"
+                            justifyContent="center"
+                            position="absolute"
+                            left={0}
+                            right={0}
+                            top={0}
+                            bottom={0}
+                          >
+                            <Typography variant="body2" sx={{ color: 'black' }}>
+                              Preview not available
+                            </Typography>
+                          </Stack>
+                        </a>
+                      )}
+                    </Stack>
+                  </Grid>
+                ))}
               </Grid>
             )}
+            <Stack alignItems="center" my={3}>
+              {isLoadingMore ? (
+                <CircularProgress sx={{ color: 'black' }} />
+              ) : (
+                <Button
+                  color="primary"
+                  onClick={handleLoadMore}
+                  disableRipple
+                  variant="outlined"
+                >
+                  Load More
+                </Button>
+              )}
+            </Stack>
           </Container>
         </Stack>
       </Drawer>

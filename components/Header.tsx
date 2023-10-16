@@ -1,10 +1,16 @@
-import { ArrowRight, OpenInNew as OpenInNewIcon } from '@mui/icons-material'
+import {
+  ArrowRight,
+  OpenInNew as OpenInNewIcon,
+  Star,
+} from '@mui/icons-material'
 import {
   Avatar,
   Box,
   Button,
   Chip,
+  CircularProgress,
   Divider,
+  IconButton,
   Menu,
   MenuItem,
   Stack,
@@ -20,6 +26,7 @@ import { XIcon } from '@/icons/XIcon'
 import { useCodelessStore } from '@/stores/codeless'
 
 import { ExternalLink } from './ExternalLink'
+import axios from 'axios'
 
 export const Header: FC = () => {
   const onlySmallScreen = useMediaQuery('(max-width:599px)')
@@ -28,14 +35,23 @@ export const Header: FC = () => {
 
   const id = useCodelessStore((state) => state.id)
 
+  const isStarred = useCodelessStore((state) => state.isStarred)
+
+  const load = useCodelessStore((state) => state.load)
+
   const mode = useCodelessStore((state) => state.mode)
 
   const name = useCodelessStore((state) => state.name)
+
+  const slug = useCodelessStore((state) => state.slug)
+
+  const starCount = useCodelessStore((state) => state.starCount)
 
   const user = useCodelessStore((state) => state.user)
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const open = Boolean(anchorEl)
+  const [isStarring, setIsStarring] = useState(false)
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget)
@@ -48,6 +64,25 @@ export const Header: FC = () => {
   const handleLogout = () => {
     signOut()
     setAnchorEl(null)
+  }
+
+  const handleStar = async () => {
+    setIsStarring(true)
+
+    try {
+      await axios({
+        method: 'POST',
+        url: '/api/project/starProject',
+        data: {
+          projectId: id,
+          status: isStarred ? 'unstar' : 'star',
+        },
+      })
+
+      await load(slug)
+    } catch {}
+
+    setIsStarring(false)
   }
 
   return (
@@ -97,6 +132,27 @@ export const Header: FC = () => {
           )}
         </Stack>
         <Stack alignItems="center" direction="row" gap={2}>
+          {!!slug && (
+            <>
+              {isStarring ? (
+                <Stack
+                  alignItems="center"
+                  height={40}
+                  justifyContent="center"
+                  width={40}
+                >
+                  <CircularProgress size={24} sx={{ color: 'white' }} />
+                </Stack>
+              ) : (
+                <Stack alignItems="center" direction="row" ml={2}>
+                  <Typography>{starCount}</Typography>
+                  <IconButton onClick={handleStar}>
+                    <Star sx={{ color: isStarred ? 'orange' : 'gray' }} />
+                  </IconButton>
+                </Stack>
+              )}
+            </>
+          )}
           {mode === 'demo' && (
             <>
               {session?.user ? (
@@ -131,24 +187,28 @@ export const Header: FC = () => {
               )}
             </>
           )}
-          <ExternalLink href="https://x.com/CodelessAI">
-            <XIcon size={18} />
-          </ExternalLink>
-          <ExternalLink href="https://github.com/ctate/codeless">
-            <GitHubIcon size={20} />
-          </ExternalLink>
-          {!onlySmallScreen && (
-            <Box>
-              <GitHubButton
-                href="https://github.com/ctate/codeless"
-                data-color-scheme="no-preference: dark; light: dark; dark: dark;"
-                data-icon="octicon-star"
-                data-show-count="true"
-                aria-label="Star ctate/codeless on GitHub"
-              >
-                Star
-              </GitHubButton>
-            </Box>
+          {!slug && (
+            <>
+              <ExternalLink href="https://x.com/CodelessAI">
+                <XIcon size={18} />
+              </ExternalLink>
+              <ExternalLink href="https://github.com/ctate/codeless">
+                <GitHubIcon size={20} />
+              </ExternalLink>
+              {!onlySmallScreen && (
+                <Box>
+                  <GitHubButton
+                    href="https://github.com/ctate/codeless"
+                    data-color-scheme="no-preference: dark; light: dark; dark: dark;"
+                    data-icon="octicon-star"
+                    data-show-count="true"
+                    aria-label="Star ctate/codeless on GitHub"
+                  >
+                    Star
+                  </GitHubButton>
+                </Box>
+              )}
+            </>
           )}
         </Stack>
       </Stack>
