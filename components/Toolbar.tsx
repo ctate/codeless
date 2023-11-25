@@ -140,13 +140,17 @@ export const Toolbar: FC = () => {
     setIsLoading(true)
 
     if (mode === 'demo') {
-      const userRes = await axios({
-        method: 'POST',
-        url: '/api/user/getUser',
-      })
-      if (!userRes.data.user) {
+      try {
+        const userRes = await axios({
+          method: 'POST',
+          url: '/api/user/getUser',
+        })
+        if (!userRes.data.user) {
+          setDialogType('user')
+          return
+        }
+      } catch {
         setDialogType('user')
-        return
       }
     }
 
