@@ -1,21 +1,11 @@
-'use client'
+import styles from './page.module.css'
 
-import { SessionProvider } from 'next-auth/react'
-import { useEffect } from 'react'
-
-import { Content } from '@/components/Content'
-import { useCodelessStore } from '@/stores/codeless'
-
-export default function HomePage() {
-  const init = useCodelessStore((state) => state.init)
-
-  useEffect(() => {
-    init()
-  }, [init])
-
+export default function Page() {
   return (
-    <SessionProvider>
-      <Content />
-    </SessionProvider>
+    <div className={styles.container}>
+      <h1>
+        Codeless is now <a href="https://specui.org">SpecUI</a>
+      </h1>
+    </div>
   )
 }
